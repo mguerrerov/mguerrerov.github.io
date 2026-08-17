@@ -1,6 +1,7 @@
 ---
-// Resultados de las seis combinaciones, ordenados por F1. Rejilla alineada en
-// monoespaciada, sin bordes ni fondo, como la tira de metricas.
+// Resultados de las seis combinaciones, ordenados por F1. Tabla real en vez de
+// divs con roles ARIA: los lectores de pantalla anuncian filas y columnas sin
+// depender de que los roles esten bien puestos.
 const filas = [
   { modelo: 'RF · class_weight', f1: '0,8364', prec: '0,9857', rec: '0,7263', auc: '0,9141' },
   { modelo: 'RF · SMOTE', f1: '0,8324', prec: '0,9231', rec: '0,7579', auc: '0,9436' },
@@ -12,25 +13,34 @@ const filas = [
 ---
 
 <figure>
-  <div class="tabla" role="table" aria-label="Resultados de las seis combinaciones, ordenados por F1">
-    <div class="fila cabecera" role="row">
-      <span role="columnheader">modelo</span>
-      <span role="columnheader">f1</span>
-      <span role="columnheader">precisión</span>
-      <span role="columnheader">recall</span>
-      <span role="columnheader">auc</span>
-    </div>
-    {
-      filas.map((f) => (
-        <div class="fila" role="row">
-          <span role="cell">{f.modelo}</span>
-          <span role="cell">{f.f1}</span>
-          <span role="cell">{f.prec}</span>
-          <span role="cell">{f.rec}</span>
-          <span role="cell">{f.auc}</span>
-        </div>
-      ))
-    }
+  <div class="marco">
+    <table>
+      <caption class="oculto">
+        Resultados de las seis combinaciones de modelo y estrategia, ordenados por F1
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">modelo</th>
+          <th scope="col">f1</th>
+          <th scope="col">precisión</th>
+          <th scope="col">recall</th>
+          <th scope="col">auc</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          filas.map((f) => (
+            <tr>
+              <th scope="row">{f.modelo}</th>
+              <td>{f.f1}</td>
+              <td>{f.prec}</td>
+              <td>{f.rec}</td>
+              <td>{f.auc}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
   </div>
   <figcaption>
     Las tres últimas filas tienen mejor recall que las dos primeras y aun así no sirven:
@@ -39,27 +49,57 @@ const filas = [
 </figure>
 
 <style>
-  .tabla {
-    font-family: var(--mono);
-    font-size: var(--t--1);
-    line-height: 2;
+  /* La tabla desborda en pantallas estrechas, asi que scrollea dentro de su
+     marco y no arrastra el resto de la pagina. tabindex la hace alcanzable por
+     teclado para poder desplazarla sin raton. */
+  .marco {
     overflow-x: auto;
   }
 
-  .fila {
-    display: grid;
-    grid-template-columns: 12rem repeat(4, 1fr);
-    gap: 0 16px;
-    min-width: 30rem;
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 32rem;
+    font-family: var(--mono);
+    font-size: var(--t--1);
   }
 
-  .fila span:not(:first-child) {
+  caption {
+    text-align: left;
+  }
+
+  th,
+  td {
+    padding: 10px 12px;
     text-align: right;
     font-variant-numeric: tabular-nums;
+    font-weight: 400;
+    border-bottom: 1px solid var(--linea);
   }
 
-  .cabecera {
+  th[scope='col'] {
     color: var(--apagado);
-    border-bottom: 1px solid var(--linea);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-bottom-color: var(--linea-fuerte);
+  }
+
+  th[scope='row'] {
+    text-align: left;
+    color: var(--texto);
+  }
+
+  tbody tr:first-child th[scope='row'],
+  tbody tr:first-child td {
+    color: var(--acento-oscuro);
+  }
+
+  .oculto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 </style>

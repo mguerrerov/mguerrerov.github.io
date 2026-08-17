@@ -64,6 +64,39 @@ proyecto. Cifras siempre con `tabular-nums`.
 **Etiquetas de tecnología.** Texto en monoespaciada sobre fondo azul tenue con
 borde. Son nombres, nunca logos ni iconos.
 
+## Accesibilidad
+
+Medido con Lighthouse sobre el build servido en local: **100 en accesibilidad,
+rendimiento, buenas prácticas y SEO** en la home y en las páginas de proyecto.
+25 auditorías de accesibilidad superadas, ninguna fallida.
+
+Decisiones que lo sostienen:
+
+- **Enlace de salto al contenido**, oculto fuera de pantalla hasta que recibe el
+  foco. No usa `display:none`, que lo sacaría del orden de tabulación.
+- **Los rótulos de sección son encabezados reales** (`h2`), no párrafos con
+  aspecto de título. Cada `section` se nombra con `aria-labelledby` apuntando al
+  suyo. La jerarquía va `h1 → h2 → h3` sin saltos.
+- **El nivel de encabezado es semántica y el tamaño es CSS.** El proyecto
+  principal se ve más grande que los otros dos y sigue siendo un `h3`.
+- **La tabla de resultados es una `<table>` real** con `th`, `scope` y `caption`,
+  en vez de divs con roles ARIA. Scrollea dentro de su marco en pantallas
+  estrechas sin arrastrar la página.
+- **En las listas de descripción la etiqueta va antes que el valor**, que es el
+  orden correcto; cuando visualmente manda la cifra, se invierte con
+  `flex-direction: column-reverse`, no cambiando el HTML.
+- **Los SVG llevan `role="img"` y nombre accesible**, con `desc` cuando el
+  diagrama necesita explicación.
+- Sin `tabindex` positivos. Foco visible con `:focus-visible`.
+
+## Rendimiento
+
+Se precargan las dos fuentes de la primera pantalla. La de titulares se añadió
+al medir un desplazamiento de diseño de 0,043 provocado por su intercambio, que
+se notaba justo en el titular: con la precarga bajó a **0**.
+
+El sitio entero pesa 175 KB y no sirve ni un byte de JavaScript.
+
 ## Se mantiene del brief original
 
 Sin degradados. Sin sombras. Sin glassmorphism. Sin iconos de librería. Sin

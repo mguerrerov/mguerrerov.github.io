@@ -132,6 +132,33 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Enlace de salto: fuera de pantalla hasta que recibe el foco por teclado. No
+   se usa `display:none` porque eso lo sacaria del orden de tabulacion. */
+.salto {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 10;
+  background: var(--superficie);
+  color: var(--acento);
+  border: 1px solid var(--acento);
+  border-radius: var(--radio);
+  padding: 12px 20px;
+  font-family: var(--mono);
+  font-size: var(--t--1);
+  text-decoration: none;
+}
+
+.salto:focus {
+  left: 16px;
+  top: 16px;
+}
+
+/* El destino del salto no debe mostrar cerco al recibir el foco por programa. */
+main:focus {
+  outline: none;
+}
+
 .envoltorio {
   max-width: var(--ancho);
   margin-inline: auto;
@@ -236,6 +263,8 @@ a:focus-visible {
   gap: 12px;
   font-family: var(--mono);
   font-size: var(--t--1);
+  font-weight: 400;
+  line-height: 1.6;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--apagado);

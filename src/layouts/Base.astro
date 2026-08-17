@@ -37,8 +37,10 @@ const canonica = new URL(Astro.url.pathname, Astro.site).href;
     <meta property="og:url" content={canonica} />
     <meta name="twitter:card" content="summary" />
 
-    <!-- Solo se precarga la fuente de cuerpo: es la unica que bloquea la
-         primera lectura. El serif y la monoespaciada cargan con swap. -->
+    <!-- Se precargan la fuente de cuerpo y la de titulares: son las dos que
+         entran en la primera pantalla. El serif se anadio al medir un
+         desplazamiento de diseno de 0,043 causado por su intercambio, que se
+         notaba justo en el titular. La monoespaciada carga con swap. -->
     <link
       rel="preload"
       href="/fonts/public-sans-var-latin.woff2"
@@ -46,9 +48,17 @@ const canonica = new URL(Astro.url.pathname, Astro.site).href;
       type="font/woff2"
       crossorigin
     />
+    <link
+      rel="preload"
+      href="/fonts/instrument-serif-400-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
   </head>
   <body>
-    <main>
+    <a class="salto" href="#contenido">Saltar al contenido</a>
+    <main id="contenido" tabindex="-1">
       <slot />
     </main>
   </body>

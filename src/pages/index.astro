@@ -34,8 +34,8 @@ const cifras = [
         {
           cifras.map((c) => (
             <div>
-              <dd>{c.valor}</dd>
               <dt>{c.etiqueta}</dt>
+              <dd>{c.valor}</dd>
             </div>
           ))
         }
@@ -44,12 +44,12 @@ const cifras = [
   </header>
 
   <div class="envoltorio">
-    <section id="proyectos" class="seccion">
-      <p class="rotulo">01 — Proyectos</p>
+    <section id="proyectos" class="seccion" aria-labelledby="t-proyectos">
+      <h2 class="rotulo" id="t-proyectos">01 — Proyectos</h2>
 
       <article class="tarjeta proyecto">
         <p class="destacado">Proyecto principal</p>
-        <h2>Pipeline sobre GH Archive</h2>
+        <h3 class="titulo-grande">Pipeline sobre GH Archive</h3>
         <p class="lectura">
           Doce meses y medio de actividad pública de GitHub, descargados hora a
           hora y convertidos en Parquet consultable. Sirve para medir qué parte de
@@ -156,8 +156,8 @@ const cifras = [
       </div>
     </section>
 
-    <section id="stack" class="seccion">
-      <p class="rotulo">02 — Stack</p>
+    <section id="stack" class="seccion" aria-labelledby="t-stack">
+      <h2 class="rotulo" id="t-stack">02 — Stack</h2>
       <div class="tarjeta">
         <dl class="agrupado">
           <dt>datos</dt>
@@ -184,8 +184,8 @@ const cifras = [
       </div>
     </section>
 
-    <section id="contacto" class="seccion">
-      <p class="rotulo">03 — Contacto</p>
+    <section id="contacto" class="seccion" aria-labelledby="t-contacto">
+      <h2 class="rotulo" id="t-contacto">03 — Contacto</h2>
       <div class="tarjeta">
         <dl class="agrupado">
           <dt>email</dt>
@@ -253,6 +253,32 @@ const cifras = [
     margin-top: 56px;
     border-bottom: 0;
     padding-bottom: 40px;
+  }
+
+  /* En el HTML la etiqueta va primero, que es el orden correcto de una lista de
+     descripcion. Visualmente la cifra manda, asi que se invierte con flex. */
+  .cifras-cabecera div {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+
+  .cifras-cabecera dt {
+    margin-top: 4px;
+  }
+
+  .cifras-cabecera dd {
+    margin-top: 0;
+    font-size: var(--t-3);
+  }
+
+  /* El proyecto principal se ve mas grande que los otros dos, pero sigue siendo
+     un h3: el nivel es semantica y el tamano es presentacion. */
+  .titulo-grande {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: var(--t-3);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
   }
 
   /* Proyectos */
