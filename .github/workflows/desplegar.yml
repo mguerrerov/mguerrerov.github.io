@@ -42,12 +42,23 @@ jobs:
       - run: npm run build
 
       # Verificacion de fuga sobre el resultado del build, no sobre el codigo.
-      # El email profesional es el unico dato de contacto permitido y se excluye
-      # de forma explicita para que el resto siga detectandose.
+      #
+      # Se comparan COINCIDENCIAS, no lineas. Astro minifica el HTML y lo deja
+      # casi todo en un unico renglon: excluir por linea descartaria el fichero
+      # entero en cuanto apareciese un valor permitido, que es justo lo que
+      # pasaba antes.
+      #
+      # Permitidos: el email profesional, unico dato de contacto que el sitio
+      # puede publicar, y el identificador del perfil publico de LinkedIn, que
+      # forma parte de su URL.
       - name: Comprobar que no hay datos personales en el build
         run: |
-          fugas=$(grep -rniE "\+34|[0-9]{9}|@gmail|@hotmail" dist/ \
-            | grep -v "marcosguerrerov27@gmail.com" || true)
+          permitidos='^(marcosguerrerov27@gmail\.com|318683299)$'
+          fugas=$(grep -rhoiE \
+              "\+34[0-9]{9}|[0-9]{9}|[a-z0-9._%+-]+@(gmail|hotmail|outlook)\.[a-z.]+" \
+              dist/ \
+            | sort -u \
+            | grep -vE "$permitidos" || true)
           if [ -n "$fugas" ]; then
             echo "ERROR: posible dato personal en el build:"
             echo "$fugas"
