@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Muestra tipografica del sistema de diseño: no es contenido del portfolio.
+Disallow: /muestra/
+
+Sitemap: https://mguerrerov.github.io/sitemap.xml

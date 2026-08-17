@@ -1,0 +1,64 @@
+---
+// Layout de las paginas de proyecto en MDX. El frontmatter de cada .mdx llega
+// aqui como props.
+import Base from './Base.astro';
+
+interface Props {
+  frontmatter: {
+    titulo: string;
+    resumen: string;
+    repo: string;
+  };
+}
+
+const { titulo, resumen, repo } = Astro.props.frontmatter;
+---
+
+<Base titulo={`${titulo} — Marcos Guerrero`} descripcion={resumen}>
+  <article>
+    <p class="rotulo"><a href="/">Marcos Guerrero</a></p>
+
+    <h1>{titulo}</h1>
+    <p class="resumen apagado">{resumen}</p>
+
+    <hr />
+
+    <div class="prosa">
+      <slot />
+    </div>
+
+    <hr />
+
+    <p class="cierre">
+      <a href={repo}>Código en GitHub</a>
+      <br />
+      <a href="/">Volver al inicio</a>
+    </p>
+  </article>
+</Base>
+
+<style>
+  .resumen {
+    font-size: var(--t-1);
+    line-height: 1.5;
+    max-width: 46ch;
+    margin-top: 24px;
+  }
+
+  hr {
+    margin-block: 64px;
+  }
+
+  /* El rotulo de vuelta no debe leerse como un enlace de cuerpo: hereda el gris
+     y solo se subraya, sin el acento. */
+  .rotulo a {
+    color: inherit;
+    text-decoration-color: var(--linea);
+  }
+
+  .cierre {
+    font-family: var(--mono);
+    font-size: var(--t--1);
+    line-height: 2.2;
+  }
+</style>

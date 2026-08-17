@@ -1,0 +1,110 @@
+---
+layout: ../../layouts/Proyecto.astro
+titulo: Recomendador de candidatos
+resumen: Ordena CVs frente a una oferta por cercanía semántica, y después corrige ese orden con los requisitos que un embedding no sabe leer.
+repo: https://github.com/mguerrerov/recomendador-candidatos
+---
+
+import Metricas from '../../components/MetricasRecomendador.astro';
+import Diagrama from '../../components/DiagramaRecomendador.astro';
+
+## Qué problema resuelve
+
+Un filtro por palabras clave descarta a quien escribe lo mismo con otras palabras. Un CV
+que dice "diseño de pipelines ETL" no aparece en una búsqueda de "data engineering",
+aunque sea exactamente lo que se busca.
+
+La cercanía semántica resuelve eso: convierte el CV y la oferta en vectores y mide el
+ángulo entre ellos, de forma que dos textos que hablan de lo mismo quedan cerca aunque no
+compartan vocabulario. Pero trae su propio problema, y es que ignora lo que no es
+semántico. Un candidato con dos años de experiencia puede parecerse muchísimo a una
+oferta que pide cinco.
+
+Por eso el sistema hace dos pasadas. Primero ordena por similitud pura. Después descuenta
+posiciones por los requisitos duros que sabe leer: años de experiencia, titulación y nivel
+de inglés. La puntuación original no se toca, se guarda junto a la ajustada, para poder
+ver qué movió el filtro y por qué.
+
+Todo corre en local, sin llamadas a APIs de pago.
+
+<Metricas />
+
+## Arquitectura
+
+<Diagrama />
+
+## Decisiones y trade-offs
+
+### Un modelo multilingüe, aunque sea peor en inglés
+
+`all-MiniLM-L6-v2` puntúa mejor en inglés puro, y era la opción por defecto. Los CVs
+reales mezclan español e inglés en la misma página, a veces en la misma línea, y un
+modelo monolingüe no coloca ambos idiomas en el mismo espacio: "aprendizaje automático" y
+"machine learning" acabarían lejos.
+
+Usé `paraphrase-multilingual-MiniLM-L12-v2`, que alinea los dos idiomas a costa de algo de
+precisión en cada uno por separado. Para este caso el bilingüismo pesa más que el techo.
+
+### MySQL con una columna JSON, no una base vectorial
+
+Con 18 candidatos, un índice vectorial no acelera nada: la búsqueda exhaustiva recorre 18
+vectores de 384 dimensiones y termina antes de que un índice aproximado se hubiera
+construido.
+
+Guardo el vector serializado en una columna `JSON` de MySQL 8, que no tiene tipo vector
+nativo, y calculo la similitud en Python. Es una decisión de escala, no de
+desconocimiento: a partir de cientos de miles de CVs la respuesta correcta sería pgvector
+o Qdrant, y habría que rehacer esta capa entera.
+
+### El coseno escrito a mano
+
+`sklearn.metrics.pairwise.cosine_similarity` lo resuelve en una línea. Lo escribí con
+numpy para que la fórmula esté a la vista y se pueda auditar cuando un resultado extraña,
+que en un sistema de ranking pasa a menudo. Son diez líneas y no dependen de nada.
+
+### Tres estados en el filtro, no dos
+
+Un requisito puede cumplirse, no cumplirse, o **no saberse**. La extracción es por
+expresiones regulares y falla: de los 18 candidatos, saca los años de experiencia en 17 y
+la titulación en 16.
+
+Si el filtro fuese binario, un fallo del extractor penalizaría a alguien por un problema
+del programa, no suyo. Con el tercer estado, lo que no se sabe no descuenta. Y quien no
+cumple un requisito no queda excluido, sino desplazado hacia abajo con el motivo escrito
+al lado: un error visible se puede corregir, uno que borra a un candidato de la lista no.
+
+## Qué se rompió y cómo lo arreglé
+
+### Los CVs largos puntuaban alto contra cualquier oferta
+
+El modelo solo mira 128 tokens de golpe, así que el CV se trocea y se promedian los
+vectores de los fragmentos. El promedio de un CV largo y variado cae cerca del centro del
+espacio semántico, y desde el centro todo queda a media distancia. Un perfil transversal
+salía segundo o tercero en ofertas donde no era el mejor candidato.
+
+Probé la alternativa evidente: puntuar por el fragmento que mejor encaja en lugar de
+promediar. Medí ambas con dos controles negativos, CVs que no deberían aparecer arriba en
+ninguna oferta, y comparé su posición media sobre 18 candidatos. El promedio puro los
+dejó en 16,62; puntuar por el mejor fragmento los subió a 13,88, es decir, más arriba de
+lo que deberían estar.
+
+La alternativa era peor, así que mantuve el promedio y dejé la limitación documentada en
+lugar de esconderla. Sigue ahí.
+
+### La zona media del ranking no significa nada
+
+Entre las posiciones 8 y 15 las diferencias de coseno bajan de 0,02. A esa distancia el
+orden es ruido: reordenar esos candidatos no responde a nada medible.
+
+No lo he arreglado, porque no creo que tenga arreglo con este enfoque. Lo que hice fue
+dejar de tratar el ranking como una lista ordenada de arriba abajo y considerarlo fiable
+solo en los extremos.
+
+### Un CV escaneado entraba como candidato vacío
+
+Un PDF que es una imagen no da texto, y el pipeline lo indexaba igual: un candidato con
+un vector construido sobre una cadena vacía, ocupando sitio en el ranking.
+
+No añadí OCR, que era mucho trabajo para un caso poco frecuente. El extractor detecta que
+no ha sacado texto útil y rechaza el fichero de forma explícita. Es preferible un
+candidato que falta y avisa a uno que está y es mentira.

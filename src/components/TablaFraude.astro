@@ -1,0 +1,65 @@
+---
+// Resultados de las seis combinaciones, ordenados por F1. Rejilla alineada en
+// monoespaciada, sin bordes ni fondo, como la tira de metricas.
+const filas = [
+  { modelo: 'RF · class_weight', f1: '0,8364', prec: '0,9857', rec: '0,7263', auc: '0,9141' },
+  { modelo: 'RF · SMOTE', f1: '0,8324', prec: '0,9231', rec: '0,7579', auc: '0,9436' },
+  { modelo: 'RF · submuestreo', f1: '0,1415', prec: '0,0771', rec: '0,8632', auc: '0,9737' },
+  { modelo: 'LR · class_weight', f1: '0,1055', prec: '0,0561', rec: '0,8737', auc: '0,9658' },
+  { modelo: 'LR · SMOTE', f1: '0,1002', prec: '0,0531', rec: '0,8737', auc: '0,9619' },
+  { modelo: 'LR · submuestreo', f1: '0,0981', prec: '0,0520', rec: '0,8737', auc: '0,9559' },
+];
+---
+
+<figure>
+  <div class="tabla" role="table" aria-label="Resultados de las seis combinaciones, ordenados por F1">
+    <div class="fila cabecera" role="row">
+      <span role="columnheader">modelo</span>
+      <span role="columnheader">f1</span>
+      <span role="columnheader">precisión</span>
+      <span role="columnheader">recall</span>
+      <span role="columnheader">auc</span>
+    </div>
+    {
+      filas.map((f) => (
+        <div class="fila" role="row">
+          <span role="cell">{f.modelo}</span>
+          <span role="cell">{f.f1}</span>
+          <span role="cell">{f.prec}</span>
+          <span role="cell">{f.rec}</span>
+          <span role="cell">{f.auc}</span>
+        </div>
+      ))
+    }
+  </div>
+  <figcaption>
+    Las tres últimas filas tienen mejor recall que las dos primeras y aun así no sirven:
+    encuentran el fraude a cambio de señalar como fraude casi todo lo demás.
+  </figcaption>
+</figure>
+
+<style>
+  .tabla {
+    font-family: var(--mono);
+    font-size: var(--t--1);
+    line-height: 2;
+    overflow-x: auto;
+  }
+
+  .fila {
+    display: grid;
+    grid-template-columns: 12rem repeat(4, 1fr);
+    gap: 0 16px;
+    min-width: 30rem;
+  }
+
+  .fila span:not(:first-child) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cabecera {
+    color: var(--apagado);
+    border-bottom: 1px solid var(--linea);
+  }
+</style>

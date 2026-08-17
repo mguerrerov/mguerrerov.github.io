@@ -1,0 +1,15 @@
+# Material de referencia con datos personales. Nunca se commitea.
+recursos/
+
+# Especificaciones del proyecto. Se quedan en local: el repositorio es publico.
+CLAUDE-portfolio.md
+
+# Dependencias y artefactos de build
+node_modules/
+dist/
+.astro/
+
+# Entorno y editor
+.env
+.env.*
+.DS_Store

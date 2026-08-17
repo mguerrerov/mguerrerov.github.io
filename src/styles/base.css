@@ -1,0 +1,372 @@
+/* ---------------------------------------------------------------------------
+   Tipografias autoalojadas. Subconjunto latino, woff2, swap.
+   Public Sans es variable: un solo fichero cubre 400 y 600.
+   Instrument Serif solo existe en 400 (no hay negrita disponible).
+--------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/instrument-serif-400-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Public Sans';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('/fonts/public-sans-var-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/jetbrains-mono-400-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ---------------------------------------------------------------------------
+   Variables
+--------------------------------------------------------------------------- */
+
+:root {
+  --fondo: #faf9f5;
+  --texto: #1c1b19;
+  --apagado: #6b6862;
+  --linea: #e3e0d8;
+  --acento: #a64b2a;
+
+  --serif: 'Instrument Serif', Georgia, serif;
+  --sans: 'Public Sans', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Escala modular, ratio 1.25, base 1rem */
+  --t--1: 0.8rem;
+  --t-0: 1rem;
+  --t-1: 1.25rem;
+  --t-2: 1.563rem;
+  --t-3: 1.953rem;
+  --t-4: 2.441rem;
+
+  --ancho: 680px;
+  --seccion: 96px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --seccion: 128px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Reset minimo
+--------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+li,
+figure,
+dl,
+dd {
+  margin: 0;
+  padding: 0;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: var(--sans);
+  font-size: var(--t-0);
+  font-weight: 400;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.envoltorio {
+  max-width: var(--ancho);
+  margin-inline: auto;
+  padding-inline: 24px;
+  padding-block: var(--seccion);
+}
+
+/* ---------------------------------------------------------------------------
+   Titulares. Instrument Serif no tiene negrita: la jerarquia la marcan el
+   tamano y el interletrado, no el peso.
+--------------------------------------------------------------------------- */
+
+h1,
+h2,
+h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--t-4);
+}
+
+h2 {
+  font-size: var(--t-2);
+}
+
+h3 {
+  font-size: var(--t-1);
+  letter-spacing: -0.01em;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+p + p {
+  margin-top: 1.6em;
+}
+
+/* Texto secundario */
+.apagado {
+  color: var(--apagado);
+}
+
+/* ---------------------------------------------------------------------------
+   Enlaces. El acento vive aqui y en poco mas.
+--------------------------------------------------------------------------- */
+
+a {
+  color: var(--acento);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+   Separadores
+--------------------------------------------------------------------------- */
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--linea);
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Secciones. Numeradas en monoespaciada, sin caja.
+--------------------------------------------------------------------------- */
+
+.seccion + .seccion {
+  margin-top: var(--seccion);
+}
+
+.rotulo {
+  font-family: var(--mono);
+  font-size: var(--t--1);
+  color: var(--apagado);
+  letter-spacing: 0.04em;
+  margin-bottom: 24px;
+}
+
+/* ---------------------------------------------------------------------------
+   Listas de contenido
+--------------------------------------------------------------------------- */
+
+.lista li {
+  padding-left: 1.2em;
+  position: relative;
+}
+
+.lista li + li {
+  margin-top: 0.4em;
+}
+
+.lista li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--apagado);
+}
+
+/* ---------------------------------------------------------------------------
+   Tira de metricas. Elemento distintivo del sitio.
+   Etiqueta y valor alineados en columna mediante grid, no tabla con bordes.
+   Sin fondo, sin caja, sin color.
+--------------------------------------------------------------------------- */
+
+.metricas {
+  font-family: var(--mono);
+  font-size: var(--t--1);
+  line-height: 2;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0 24px;
+}
+
+.metricas dt {
+  color: var(--apagado);
+}
+
+.metricas dd {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* ---------------------------------------------------------------------------
+   Lista agrupada en monoespaciada: categoria a la izquierda, contenido a la
+   derecha. Se usa para el stack y para el contacto. A diferencia de la tira de
+   metricas, el valor se alinea a la izquierda porque es texto, no una cifra.
+--------------------------------------------------------------------------- */
+
+.agrupado {
+  font-family: var(--mono);
+  font-size: var(--t--1);
+  line-height: 1.9;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px 24px;
+}
+
+@media (min-width: 768px) {
+  .agrupado {
+    grid-template-columns: 10rem 1fr;
+    gap: 8px 24px;
+  }
+}
+
+.agrupado dt {
+  color: var(--apagado);
+}
+
+.agrupado dd {
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Prosa larga: paginas de proyecto escritas en MDX. Como el markdown genera
+   las etiquetas sin clases, aqui se estilan por elemento dentro de .prosa.
+--------------------------------------------------------------------------- */
+
+.prosa > * + * {
+  margin-top: 1.6em;
+}
+
+.prosa h2 {
+  margin-top: 2.5em;
+  margin-bottom: 0;
+}
+
+.prosa h3 {
+  margin-top: 2em;
+  margin-bottom: 0;
+}
+
+.prosa h2 + *,
+.prosa h3 + * {
+  margin-top: 0.8em;
+}
+
+.prosa ul {
+  padding-left: 1.2em;
+}
+
+.prosa ul li {
+  position: relative;
+}
+
+.prosa ul li + li {
+  margin-top: 0.4em;
+}
+
+.prosa ul li::before {
+  content: '—';
+  position: absolute;
+  left: -1.2em;
+  color: var(--apagado);
+}
+
+.prosa code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+}
+
+.prosa pre {
+  font-family: var(--mono);
+  font-size: var(--t--1);
+  line-height: 1.7;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.prosa figure {
+  margin-block: 2.5em;
+}
+
+.prosa figcaption {
+  font-family: var(--mono);
+  font-size: var(--t--1);
+  color: var(--apagado);
+  margin-top: 16px;
+}
+
+.prosa strong {
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------------------
+   Preferencias del sistema
+--------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

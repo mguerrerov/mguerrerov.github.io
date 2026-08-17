@@ -1,0 +1,178 @@
+---
+layout: ../../layouts/Proyecto.astro
+titulo: Pipeline sobre GH Archive
+resumen: Doce meses y medio de actividad pública de GitHub, mil trescientos millones de eventos, procesados en una máquina de escritorio por cero euros.
+repo: https://github.com/mguerrerov/Pyspark-GHArchive
+---
+
+import Metricas from '../../components/MetricasGhArchive.astro';
+import Diagrama from '../../components/DiagramaGhArchive.astro';
+
+## Qué problema resuelve
+
+Quería responder a tres preguntas sobre la actividad pública de GitHub: qué parte de
+los pull requests la generan bots y agentes de IA, y cómo cambia esa proporción con el
+tiempo; cuánto tarda un PR en recibir review o merge, y si el reloj corre distinto para
+un bot que para una persona; qué repositorios están ganando o perdiendo contribuyentes
+activos. La API de GitHub no sirve para eso, porque devuelve el estado de hoy y aquí
+hacen falta series largas.
+
+GH Archive publica el volcado histórico de eventos públicos: el registro completo, no
+una muestra. A cambio llega en un formato incómodo. Un fichero comprimido por hora, uno
+por uno, y dentro un JSON cuyo payload no siempre trae lo mismo. El 9 de octubre de 2025
+dejó de publicarse el payload completo, sin aviso, y entre el 9 y el 14 el volumen se
+desplomó hasta no recuperarse el día 15. Cualquier consulta que cruce esa frontera tiene
+que funcionar con los dos esquemas.
+
+El backfill corre en un ordenador de escritorio, un Ryzen 7 5800X con 31,9 GB de RAM. El
+reconocimiento inicial y la bisección que acotó el cambio de formato se hicieron en
+runners gratuitos de GitHub Actions, porque durante un tiempo la red local no alcanzaba
+el origen. Sin nube de pago: el coste es 0 euros.
+
+Me fijé un presupuesto de 250 GB (232,8 GiB) para el histórico. No era el límite de la
+máquina, que tenía 1.378 GB libres en otro disco, sino una restricción que me puse para
+no dedicarle el equipo entero. Dentro de ese presupuesto, el disco se llenaba antes que
+la CPU, y eso decidió el códec, la ventana temporal y el orden de las operaciones.
+
+<Metricas />
+
+## Arquitectura
+
+<Diagrama />
+
+## Decisiones y trade-offs
+
+### Cambié snappy por zstd
+
+Empecé con snappy, que es el códec que Spark usa por defecto al escribir Parquet, y no
+tenía motivo para dudar. Al medir un día completo (2025-08-13, 3.794.323 eventos) el
+Parquet pesaba 3,599 GiB: 1,788 veces el `.gz` de origen. Estaba pagando disco por
+convertir a columnar y encima quedándome con ficheros más grandes que los que había
+descargado.
+
+Repetí la medición con zstd sobre el mismo día: 1,723 GiB, ratio 0,856×, y 135,0 segundos
+de escritura frente a los 222,9 de snappy. El 52 % menos de tamaño era lo esperado; que
+además fuese más rápido no lo era, porque el argumento habitual a favor de snappy es
+justamente la velocidad.
+
+A cambio, zstd descomprime algo más lento en lecturas repetidas. Con este perfil de uso
+—se escribe una vez y se lee por lotes— no compensa lo que ahorra. Con almacenamiento
+barato y consultas interactivas la habría tomado al revés.
+
+### Proyectar el JSON solo en cinco tipos de evento
+
+Guardar bronze tal cual, con el JSON íntegro como columna de texto, era la opción cómoda:
+bronze se supone crudo y así no me cerraba puertas. Es lo que hice al principio.
+
+Mis tres preguntas solo tocan cinco tipos de evento. Proyecté el JSON completo únicamente
+en esos cinco y lo descarté en el resto. El mismo día bajó de 1,723 GiB a 1,078 GiB, un
+37 % adicional sobre lo que ya había ganado con zstd.
+
+Si mañana quiero mirar el array de commits de un `PushEvent`, el payload ya no está y hay
+que volver a descargar esos días. Acepté la dependencia porque el origen sigue publicado
+y porque sin el recorte los 12,5 meses no cabían en el presupuesto.
+
+### El esquema se detecta leyendo campos
+
+Con la fecha del cambio ya localizada, lo directo era ramificar por ella: antes del 9 de
+octubre un esquema, después otro. Preferí que el pipeline mirase si los campos están
+presentes en cada fichero y decidiese a partir de ahí. Si el formato vuelve a cambiar, o
+si vuelve al anterior, no hay que tocar código ni recordar qué constante actualizar.
+
+El precio es más lógica en el parser, y que los tests de calidad tengan que tolerar por
+tramo las columnas que en el formato reducido llegan siempre nulas: lenguaje del
+repositorio, latencias y conteo de commits. No pueden exigir cobertura uniforme. Me
+pareció barato comparado con dejar una fecha mágica escrita en el código, sobre todo
+después de que el proveedor demostrase que cambia el formato sin avisar.
+
+### Cinco clases de actor
+
+La primera versión tenía una columna `is_bot`, que es lo que había visto en otros
+análisis. Con ese booleano mi pregunta no se puede responder: un agente de IA y un bot
+que actualiza dependencias caen en la misma casilla, y sobre la prueba de dos días los
+segundos son 202.030 frente a 58.614 agentes.
+
+Clasifico en humano, bot_ci, bot_dependencias, agente_ia y bot_otro. Sobre la prueba de
+silver de dos días (2025-08-13 y 2026-08-12, 7.719.353 eventos) el reparto vigente es
+6.268.266 humanos, 1.093.101 bot_ci, 202.030 bot_dependencias, 58.614 agente_ia y 97.342
+bot_otro.
+
+Ampliar las listas de reconocimiento movió 83.922 eventos fuera de la casilla de
+descarte, que bajó de 181.264 a 97.342. De esos, 70.601 eran bots de CI y solo 13.321
+agentes de IA: lo que el descarte estaba absorbiendo era sobre todo automatismo de
+integración continua que las listas aún no reconocían. Mantenerlas al día es el coste
+recurrente de esta decisión, y quedan 97.342 eventos que sigo sin saber nombrar.
+
+### Deduplicar después de proyectar, no antes
+
+El `dropDuplicates` por id estaba donde parece natural, nada más entrar en silver, sobre
+bronze completo. Lanza un shuffle, y ese shuffle arrastraba la columna con el JSON
+íntegro de cada evento. Llenó el disco de sistema; el episodio está contado más abajo.
+
+Lo moví detrás de la selección de columnas, de modo que el shuffle solo mueve el id y los
+campos que sobreviven a silver. El orden nuevo asume que dos filas con el mismo id son la
+misma fila, porque ya no comparo su contenido. Los duplicados son 12.364 sobre
+1.319.395.759 filas, un 0,0009 %; en la muestra de reconocimiento el único que inspeccioné
+tenía contenido idéntico. No he comprobado los 12.364 uno a uno, pero a ese volumen la
+elección no mueve ningún resultado.
+
+## Qué se rompió y cómo lo arreglé
+
+### El disco de sistema pasó de 90,5 GB libres a 0,5 GB
+
+La ejecución de silver abortó con un `IOException` por espacio insuficiente. El disco
+lleno no era el de datos, sino `C:`, donde Spark escribe sus temporales por defecto.
+
+La causa era el shuffle del `dropDuplicates` sobre bronze completo, arrastrando el JSON
+entero. Al limpiar los directorios `blockmgr` huérfanos recuperé 610,80 GiB, y 581,67 GiB
+de ellos estaban en un único `blockmgr` de un job que había muerto sin liberar nada.
+
+Moví `spark.local.dir` fuera del disco de sistema y reordené la deduplicación para que
+ocurra después de proyectar columnas. Sobre la misma prueba de 7 días y 24.417.900 filas
+de bronze, donde antes abortaba, después escribió en 112,3 segundos las 2.912.405 filas
+de `pr_eventos` que corresponden a ese rango.
+
+### Dieciséis tests en verde sobre una tabla a la que le faltaban 11 millones de filas
+
+Un job de silver murió a mitad de escritura y la suite de calidad pasó entera.
+
+Los 16 tests comprobaban coherencia interna: tipos, nulos, rangos, unicidad de id. Todo
+eso se cumple igual de bien en una tabla completa que en una truncada. Ninguno miraba el
+volumen contra el origen. Faltaban 10.979.227 filas, un 0,83 % del total, y el pipeline
+daba señal de correcto.
+
+Añadí una conciliación de recuentos entre bronze y silver por partición, con umbral del
+0,1 %. Aquel desvío del 0,83 % habría quedado ocho veces por encima del umbral. Los otros
+16 tests estaban bien escritos; lo que faltaba era una comprobación que nadie había
+escrito.
+
+### Seis días con 588 eventos por hora en vez de los 150.000 habituales
+
+Al procesar octubre de 2025 el volumen se desplomó. Entre el 9 y el 14 los ficheros
+horarios traían entre 588 y 1.346 eventos, frente a los cerca de 150.000 esperados, y no
+recuperaban el nivel normal hasta el día 15.
+
+No era un fallo de mi descarga. GH Archive recortó el payload el día 9 sin anunciarlo, y
+además esos seis días llegan casi vacíos. Lo descubrí inspeccionando ficheros a mano y
+acoté la fecha por bisección, con resolución de un día. Hay indicios de que el corte real
+ocurrió a media jornada del 8 —tiene un 29 % menos de eventos que el 7— pero no bajé a la
+hora concreta porque no cambiaba ninguna decisión.
+
+El pipeline lee ambos formatos sin ramas por calendario, y los seis días se excluyen de
+forma explícita como hueco conocido: son datos ausentes, no escasos, y promediarlos
+habría ensuciado cualquier serie temporal que los cruzara.
+
+### Una estimación de disco equivocada por cuatro veces
+
+Calculé el peso del tramo de formato reducido midiendo un solo día: 0,093 GiB/día. Con un
+muestreo repartido a lo largo de los meses la cifra real resultó ser 0,370 GiB/día.
+
+No fue la primera vez. Antes había proyectado 940 GiB para un año extrapolando desde una
+única hora punta; medir un día completo dio 734 GiB, un 28 % menos. La ventana del tramo
+con formato completo se revisó cuatro veces, pasando por 92, 130, 116 y finalmente 55
+días. Tres de esas revisiones salen del mismo error, extrapolar desde una sola muestra; la
+cuarta, de provisionar el tamaño de silver a ojo con un 15 % en lugar de medirlo.
+
+El arreglo no fue de código sino de método: fijar el presupuesto por decisión y meter un
+freno duro en `backfill.py`, que corta a los 215 GiB en vez de fiarse de la proyección
+vigente. El histórico terminó ocupando 192,8 GiB de los 232,8 GiB presupuestados.

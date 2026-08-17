@@ -1,0 +1,54 @@
+---
+import '../styles/base.css';
+
+interface Props {
+  titulo: string;
+  descripcion?: string;
+  indexable?: boolean;
+}
+
+const { titulo, descripcion, indexable = true } = Astro.props;
+
+// URL absoluta de esta pagina, para el canonical y para Open Graph.
+const canonica = new URL(Astro.url.pathname, Astro.site).href;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{titulo}</title>
+    {descripcion && <meta name="description" content={descripcion} />}
+    {!indexable && <meta name="robots" content="noindex" />}
+    <link rel="canonical" href={canonica} />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <!-- Open Graph. Sin datos personales: solo el nombre publico, el titulo de
+         la pagina y su descripcion, que es lo mismo que ya se ve en pantalla. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Marcos Guerrero" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:title" content={titulo} />
+    {descripcion && <meta property="og:description" content={descripcion} />}
+    <meta property="og:url" content={canonica} />
+    <meta name="twitter:card" content="summary" />
+
+    <!-- Solo se precarga la fuente de cuerpo: es la unica que bloquea la
+         primera lectura. El serif y la monoespaciada cargan con swap. -->
+    <link
+      rel="preload"
+      href="/fonts/public-sans-var-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+  </head>
+  <body>
+    <main class="envoltorio">
+      <slot />
+    </main>
+  </body>
+</html>

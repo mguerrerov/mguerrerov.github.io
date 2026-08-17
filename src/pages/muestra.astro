@@ -1,0 +1,83 @@
+---
+// Pagina de muestra de la Fase 1. Existe para juzgar el ritmo tipografico
+// antes de maquetar nada. No contiene contenido real ni datos personales:
+// se sustituira entera por la home en la Fase 2.
+import Base from '../layouts/Base.astro';
+---
+
+<Base titulo="Muestra tipografica" descripcion="Pagina de muestra del sistema de diseño." indexable={false}>
+  <section class="seccion">
+    <p class="rotulo">00 — Muestra</p>
+    <h1>Titular de primer nivel en serif</h1>
+    <p class="apagado">
+      Linea de apoyo en texto secundario, para comprobar el contraste del gris
+      apagado sobre el fondo hueso y cuanto pesa junto al titular.
+    </p>
+  </section>
+
+  <hr />
+
+  <section class="seccion">
+    <p class="rotulo">01 — Cuerpo y enlaces</p>
+    <h2>Titular de segundo nivel</h2>
+    <p>
+      Parrafo de cuerpo a un rem con interlineado de uno coma seis. El ancho de
+      columna se detiene en seiscientos ochenta pixeles, que deja la linea en
+      unos setenta y cinco caracteres: suficiente para leer de corrido sin que
+      el ojo se pierda al saltar de renglon.
+    </p>
+    <p>
+      Segundo parrafo para ver la separacion entre bloques de texto y como se
+      comporta <a href="#">un enlace dentro de una linea</a> con el acento
+      terracota, que es el unico sitio donde aparece el color.
+    </p>
+
+    <h3>Titular de tercer nivel</h3>
+    <p>
+      El tercer nivel baja a un cuarto de escala sobre el cuerpo. Sin negrita:
+      el serif solo tiene un peso, asi que la jerarquia la marcan el tamano y el
+      interletrado.
+    </p>
+  </section>
+
+  <hr />
+
+  <section class="seccion">
+    <p class="rotulo">02 — Lista</p>
+    <ul class="lista">
+      <li>Primer elemento de una lista, con raya en lugar de bolo</li>
+      <li>Segundo elemento, algo mas largo, para ver como sangra al partirse en dos lineas cuando el ancho se acaba</li>
+      <li>Tercer elemento</li>
+    </ul>
+  </section>
+
+  <hr />
+
+  <section class="seccion">
+    <p class="rotulo">03 — Tira de metricas</p>
+    <dl class="metricas">
+      <dt>etiqueta corta</dt>
+      <dd>000,0 M</dd>
+      <dt>transformacion de formato</dt>
+      <dd>0,0 TB → 000 GB</dd>
+      <dt>duracion del proceso</dt>
+      <dd>00 min</dd>
+      <dt>coste</dt>
+      <dd>0 €</dd>
+    </dl>
+  </section>
+
+  <hr />
+
+  <section class="seccion">
+    <p class="apagado">Fin de la muestra.</p>
+  </section>
+</Base>
+
+<style>
+  /* Aqui las secciones van separadas por reglas, asi que el aire lo pone la
+     propia regla y no el margen entre secciones. */
+  hr {
+    margin-block: var(--seccion);
+  }
+</style>

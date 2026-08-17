@@ -1,0 +1,189 @@
+---
+// Home. El stack sale del curriculum; los proyectos estan pendientes de la
+// referencia de GitHub y por eso su seccion aun no tiene contenido.
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  titulo="Marcos Guerrero"
+  descripcion="Preparo, proceso y modelo datos. Python, Spark y machine learning aplicado."
+>
+  <header class="seccion">
+    <h1>Marcos Guerrero</h1>
+    <p class="presentacion">
+      Preparo y proceso datos para que respondan preguntas: desde el volcado en
+      crudo hasta el modelo entrenado y el informe que alguien usa para decidir.
+    </p>
+    <p class="presentacion apagado">
+      Antes de esto pasé tres años arreglando ordenadores y redes ajenas, que es
+      donde se aprende que un sistema que nadie sabe usar no sirve de nada.
+    </p>
+  </header>
+
+  <hr />
+
+  <section class="seccion">
+    <p class="rotulo">01 — Proyecto principal</p>
+    <h2>Pipeline sobre GH Archive</h2>
+    <p>
+      Doce meses y medio de actividad pública de GitHub, descargados hora a hora
+      y convertidos en Parquet consultable. Sirve para medir qué parte de los
+      pull requests abre ya un agente automático y cuánto tarda cada uno en
+      recibir revisión.
+    </p>
+
+    <dl class="metricas">
+      <dt>eventos</dt>
+      <dd>1.311,7 M</dd>
+
+      <dt>periodo</dt>
+      <dd>12,5 meses</dd>
+
+      <dt>parquet en disco</dt>
+      <dd>149 GiB</dd>
+
+      <dt>compresión sobre el origen</dt>
+      <dd>0,54×</dd>
+
+      <dt>duplicados</dt>
+      <dd>0,0009 %</dd>
+
+      <dt>coste</dt>
+      <dd>0 €</dd>
+    </dl>
+
+    <p>
+      Corre entero en una máquina de escritorio con Spark en local, sin nube de
+      pago. Lo caro no fue procesarlo sino que cupiera: el disco se llenó dos
+      veces antes de reordenar la deduplicación.
+    </p>
+    <p>
+      <a href="/proyectos/gh-archive/">Leer cómo está hecho</a>
+    </p>
+  </section>
+
+  <hr />
+
+  <section class="seccion">
+    <p class="rotulo">02 — Otros proyectos</p>
+
+    <article class="compacto">
+      <h3>Recomendador de candidatos</h3>
+      <p>
+        Ordena CVs frente a una oferta por cercanía semántica en vez de por
+        palabras clave, y luego corrige el orden descontando los requisitos
+        duros que un embedding no sabe leer.
+      </p>
+      <p class="ficha">
+        embeddings multilingües · coseno con numpy · MySQL · FastAPI · n8n ·
+        Streamlit
+      </p>
+      <p>
+        <a href="/proyectos/recomendador-candidatos/">Leer cómo está hecho</a>
+      </p>
+    </article>
+
+    <article class="compacto">
+      <h3>Detección de fraude con tarjeta</h3>
+      <p>
+        284.807 transacciones con un 0,17 % de fraude. Compara tres formas de
+        tratar ese desequilibrio contra dos modelos, y gana la que no toca los
+        datos.
+      </p>
+      <p class="ficha">
+        scikit-learn · SMOTE · submuestreo · regresión logística · random forest
+      </p>
+      <p>
+        <a href="/proyectos/deteccion-fraude/">Leer cómo está hecho</a>
+      </p>
+    </article>
+  </section>
+
+  <hr />
+
+  <section class="seccion">
+    <p class="rotulo">03 — Stack</p>
+    <dl class="agrupado">
+      <dt>datos</dt>
+      <dd>Python, Pandas, NumPy, Spark, Power BI</dd>
+
+      <dt>modelos</dt>
+      <dd>Scikit-Learn, PyTorch</dd>
+
+      <dt>bases de datos</dt>
+      <dd>PostgreSQL, MySQL</dd>
+
+      <dt>lenguajes</dt>
+      <dd>Python, JavaScript, PHP, Java</dd>
+
+      <dt>sistemas</dt>
+      <dd>Linux, Windows, AWS</dd>
+
+      <dt>certificación</dt>
+      <dd>AWS Certified Cloud Practitioner</dd>
+
+      <dt>idiomas</dt>
+      <dd>Español nativo, inglés B2–C1</dd>
+    </dl>
+  </section>
+
+  <hr />
+
+  <section class="seccion">
+    <p class="rotulo">04 — Contacto</p>
+    <dl class="agrupado">
+      <dt>email</dt>
+      <dd><a href="mailto:marcosguerrerov27@gmail.com">marcosguerrerov27@gmail.com</a></dd>
+
+      <dt>github</dt>
+      <dd><a href="https://github.com/mguerrerov">github.com/mguerrerov</a></dd>
+
+      <dt>linkedin</dt>
+      <dd>
+        <a href="https://www.linkedin.com/in/marcos-guerrero-villamor-318683299/"
+          >marcos-guerrero-villamor</a
+        >
+      </dd>
+    </dl>
+  </section>
+</Base>
+
+<style>
+  /* Las secciones van separadas por reglas, asi que el aire lo pone la regla. */
+  hr {
+    margin-block: var(--seccion);
+  }
+
+  /* Las dos lineas de presentacion respiran mas que un parrafo normal y se
+     quedan algo mas cortas que la columna para que no compitan con el titular. */
+  .presentacion {
+    font-size: var(--t-1);
+    line-height: 1.5;
+    max-width: 42ch;
+    margin-top: 24px;
+  }
+
+  h2,
+  h3 {
+    margin-bottom: 16px;
+  }
+
+  /* La tira de metricas necesita mas aire que un parrafo: es una pausa en la
+     lectura, no una continuacion. */
+  .metricas {
+    margin-block: 32px;
+  }
+
+  .compacto + .compacto {
+    margin-top: 48px;
+  }
+
+  /* Enumeracion del stack de cada proyecto compacto. Monoespaciada como la
+     tira de metricas, para que se lean como la misma familia de dato. */
+  .ficha {
+    font-family: var(--mono);
+    font-size: var(--t--1);
+    color: var(--apagado);
+    margin-top: 12px;
+  }
+</style>

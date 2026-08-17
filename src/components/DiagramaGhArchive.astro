@@ -1,0 +1,83 @@
+---
+// Diagrama de las etapas implementadas del pipeline. SVG escrito a mano, sin
+// libreria. Vive en un componente .astro y no en el MDX porque alli el HTML se
+// parsea como JSX y los atributos con guion (stroke-width) darian error.
+---
+
+<figure>
+  <svg
+    viewBox="0 0 580 524"
+    role="img"
+    aria-labelledby="tl-pipe ds-pipe"
+    style="max-width:100%;height:auto"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <title id="tl-pipe">Etapas implementadas del pipeline</title>
+    <desc id="ds-pipe">
+      Flujo vertical de cuatro etapas a partir del origen: ficheros json.gz horarios de GH
+      Archive; descarga concurrente con httpx; capa bronze en Parquet particionado por fecha
+      con codec zstd; capa silver con tipado, proyeccion de columnas, deduplicado por id y
+      clasificacion de actor en cinco clases; y tests de calidad, diecisiete pruebas incluida
+      la conciliacion de recuentos entre bronze y silver por particion.
+    </desc>
+
+    <defs>
+      <marker
+        id="pf"
+        viewBox="0 0 10 10"
+        refX="9"
+        refY="5"
+        markerWidth="7"
+        markerHeight="7"
+        markerUnits="userSpaceOnUse"
+        orient="auto-start-reverse"
+      >
+        <path d="M0 0 L10 5 L0 10" fill="none" stroke="#6B6862" stroke-width="1.5"></path>
+      </marker>
+    </defs>
+
+    <text x="30" y="24" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="#6B6862">pipeline batch · etapas implementadas</text>
+
+    <rect x="30" y="44" width="520" height="54" fill="none" stroke="#6B6862" stroke-width="1" rx="4"></rect>
+    <text x="48" y="66" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="13" fill="#1C1B19">origen: gh archive</text>
+    <text x="48" y="84" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="#6B6862">ficheros .json.gz horarios de eventos publicos</text>
+
+    <line x1="290" y1="100" x2="290" y2="116" stroke="#6B6862" stroke-width="1.5" marker-end="url(#pf)"></line>
+
+    <rect x="30" y="118" width="520" height="70" fill="none" stroke="#1C1B19" stroke-width="1" rx="4"></rect>
+    <text x="48" y="140" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="13" fill="#1C1B19">1 · descarga concurrente</text>
+    <text x="48" y="158" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="#6B6862">idempotente y reanudable · maximo 6 conexiones</text>
+    <text x="48" y="176" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="#6B6862">httpx · ingest/descargar.py</text>
+
+    <line x1="290" y1="190" x2="290" y2="206" stroke="#6B6862" stroke-width="1.5" marker-end="url(#pf)"></line>
+
+    <rect x="30" y="208" width="520" height="70" fill="none" stroke="#1C1B19" stroke-width="1" rx="4"></rect>
+    <text x="48" y="230" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="13" fill="#1C1B19">2 · bronze</text>
+    <text x="48" y="248" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="#6B6862">crudo sin transformar · parquet por fecha · zstd</text>
+    <text x="48" y="266" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="#6B6862">pyspark · spark_jobs/bronze.py</text>
+
+    <line x1="290" y1="280" x2="290" y2="296" stroke="#6B6862" stroke-width="1.5" marker-end="url(#pf)"></line>
+
+    <rect x="30" y="298" width="520" height="88" fill="none" stroke="#1C1B19" stroke-width="1" rx="4"></rect>
+    <line x1="22" y1="302" x2="22" y2="382" stroke="#A64B2A" stroke-width="1.5"></line>
+    <text x="48" y="320" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="13" fill="#1C1B19">3 · silver</text>
+    <text x="48" y="338" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="#6B6862">tipado · proyeccion de columnas · dedup por id</text>
+    <text x="48" y="356" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="#6B6862">actor en 5 clases, no un booleano is_bot</text>
+    <text x="48" y="374" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="#6B6862">pyspark · spark_jobs/silver.py + bots.py</text>
+
+    <line x1="290" y1="388" x2="290" y2="404" stroke="#6B6862" stroke-width="1.5" marker-end="url(#pf)"></line>
+
+    <rect x="30" y="406" width="520" height="70" fill="none" stroke="#1C1B19" stroke-width="1" rx="4"></rect>
+    <text x="48" y="428" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="13" fill="#1C1B19">4 · tests de calidad</text>
+    <text x="48" y="446" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="#6B6862">16 de coherencia + conciliacion bronze/silver</text>
+    <text x="48" y="464" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="#6B6862">pytest · calidad/tests_calidad.py</text>
+
+    <line x1="30" y1="496" x2="550" y2="496" stroke="#E3E0D8" stroke-width="1"></line>
+    <text x="30" y="512" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="#6B6862">backfill.py recorre las etapas 1 a 3 dia a dia, con freno de disco</text>
+  </svg>
+
+  <figcaption>
+    Las etapas 1 a 4 son las que existen en el repositorio. El orquestador queda fuera del
+    flujo porque no es una etapa: recorre las tres primeras, un día por vuelta.
+  </figcaption>
+</figure>

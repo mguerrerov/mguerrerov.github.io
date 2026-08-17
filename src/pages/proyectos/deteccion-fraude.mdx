@@ -1,0 +1,107 @@
+---
+layout: ../../layouts/Proyecto.astro
+titulo: Detección de fraude con tarjeta
+resumen: Doscientas ochenta y cuatro mil transacciones con un 0,17 % de fraude, y tres formas distintas de tratar ese desequilibrio puestas a competir.
+repo: https://github.com/mguerrerov/credit-card-fraud-detection
+---
+
+import Metricas from '../../components/MetricasFraude.astro';
+import Tabla from '../../components/TablaFraude.astro';
+
+## Qué problema resuelve
+
+En este conjunto de datos el fraude es el 0,17 % de las transacciones. Ese desequilibrio
+es el problema entero, y rompe lo primero que uno mira: un modelo que responda "legítima"
+siempre, sin mirar nada, acierta el 99,83 % de las veces. La precisión global no dice nada
+aquí, y usarla como criterio lleva directamente a un modelo inútil.
+
+Lo que hay que decidir es qué hacer con esa desproporción. Hay tres respuestas habituales
+y no es obvio cuál gana, así que las probé las tres contra dos modelos y comparé los seis
+resultados con métricas que sí distinguen.
+
+<Metricas />
+
+## Metodología
+
+Las variables `V1` a `V28` vienen ya transformadas por PCA desde el origen, así que solo
+`Amount` y `Time` necesitan escalado. Quité 1.081 filas duplicadas y dividí en 80/20
+estratificado, para que la proporción de fraude sea la misma en entrenamiento y en
+prueba: sin estratificar, un reparto aleatorio desafortunado puede dejar casi todo el
+fraude a un lado.
+
+Sobre ese conjunto, tres estrategias:
+
+- **SMOTE**, que sintetiza transacciones fraudulentas nuevas interpolando entre las
+  reales, hasta equilibrar las clases.
+- **Submuestreo**, que descarta transacciones legítimas hasta igualar. El conjunto de
+  entrenamiento se queda en 756 filas, 378 por clase.
+- **`class_weight='balanced'`**, que no toca los datos y se limita a penalizar más el
+  error sobre la clase minoritaria.
+
+Y dos modelos: regresión logística, como línea base, y random forest, porque un espacio
+transformado por PCA puede tener separaciones no lineales que un modelo lineal no alcanza.
+
+## Resultados
+
+<Tabla />
+
+Gana random forest sin tocar los datos: F1 de 0,8364 y una precisión del 98,57 %. Lo
+interesante es que las dos técnicas de remuestreo, que son las que suelen citarse como
+*la* solución al desequilibrio, quedan por detrás de simplemente reponderar la función de
+pérdida.
+
+Las cuatro filas de abajo enseñan por qué el recall solo no vale. Todas superan el 86 %
+de recall y todas tienen una precisión por debajo del 8 %: encuentran el fraude porque
+marcan como fraude casi todo. En producción eso significa bloquear miles de compras
+legítimas para atrapar unas pocas fraudulentas, que es una forma cara de fallar.
+
+## Decisiones y trade-offs
+
+### Comparar las tres estrategias en vez de elegir una
+
+Podría haber leído que SMOTE es lo recomendado, aplicarlo y presentar el resultado.
+Habría salido un F1 de 0,8324, que suena bien hasta que ves que la opción de no hacer
+nada da 0,8364 con menos trabajo y sin inventar datos.
+
+Cada técnica tiene su riesgo y ninguno es teórico: SMOTE introduce ruido cerca de la
+frontera de decisión, porque las transacciones que fabrica no existieron; el submuestreo
+tira datos reales y deja el entrenamiento en 756 filas de las 283.726 disponibles.
+Medirlas era la única forma de saber cuál pesaba más aquí.
+
+### Random forest y regresión logística, no solo uno
+
+La regresión logística es la línea base obligatoria: si un modelo lineal basta, el resto
+sobra. No bastó, y por bastante — no pasó de 0,11 de F1 en ninguna configuración.
+
+Esa diferencia es en sí misma un resultado. Dice que la separación entre fraude y no
+fraude en este espacio no es lineal, y que las combinaciones de variables que encuentra
+un árbol están haciendo un trabajo que ninguna frontera recta puede hacer.
+
+### F1 y AUC, nunca accuracy
+
+F1 combina precisión y recall en el umbral por defecto, y AUC mide la calidad del orden
+en todos los umbrales a la vez. Entre las dos cubren las dos preguntas que importan: si
+las alarmas concretas son fiables, y si el modelo sabe ordenar por riesgo aunque el corte
+esté mal puesto.
+
+## Limitaciones que no he resuelto
+
+### La división train/test filtra el futuro al pasado
+
+Es el fallo metodológico más serio del proyecto y no está arreglado. Repartí las
+transacciones al azar, así que en el entrenamiento hay operaciones posteriores a las de
+prueba. Un modelo desplegado nunca tiene eso: solo ve el pasado.
+
+El reparto correcto sería por tiempo, entrenar con los primeros meses y evaluar con los
+últimos. Es muy probable que las métricas bajasen, porque los patrones de fraude cambian
+y el reparto aleatorio se lo pone fácil al modelo. Las cifras de esta página hay que
+leerlas sabiendo esto.
+
+### El umbral se quedó en 0,5
+
+Todos los modelos clasifican con el umbral por defecto, que rara vez es el óptimo. La
+curva de precisión-recall está calculada y ahí se ve dónde estaría el punto de corte
+razonable según lo que cueste cada tipo de error, pero no llegué a moverlo.
+
+Es la mejora con mejor relación entre esfuerzo y resultado que queda pendiente: no exige
+reentrenar nada, solo decidir qué duele más, una alarma falsa o un fraude que pasa.
