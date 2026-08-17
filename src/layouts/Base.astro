@@ -25,6 +25,7 @@ const canonica = new URL(Astro.url.pathname, Astro.site).href;
     <link rel="canonical" href={canonica} />
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#f7f9fc" />
 
     <!-- Open Graph. Sin datos personales: solo el nombre publico, el titulo de
          la pagina y su descripcion, que es lo mismo que ya se ve en pantalla. -->
@@ -47,7 +48,7 @@ const canonica = new URL(Astro.url.pathname, Astro.site).href;
     />
   </head>
   <body>
-    <main class="envoltorio">
+    <main>
       <slot />
     </main>
   </body>

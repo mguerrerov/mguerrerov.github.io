@@ -1,6 +1,6 @@
 ---
-// Layout de las paginas de proyecto en MDX. El frontmatter de cada .mdx llega
-// aqui como props.
+// Layout de las paginas de proyecto en MDX. Misma cabecera blanca a ancho
+// completo que la home, y despues la prosa en columna de lectura.
 import Base from './Base.astro';
 
 interface Props {
@@ -15,50 +15,89 @@ const { titulo, resumen, repo } = Astro.props.frontmatter;
 ---
 
 <Base titulo={`${titulo} — Marcos Guerrero`} descripcion={resumen}>
-  <article>
-    <p class="rotulo"><a href="/">Marcos Guerrero</a></p>
-
-    <h1>{titulo}</h1>
-    <p class="resumen apagado">{resumen}</p>
-
-    <hr />
-
-    <div class="prosa">
-      <slot />
+  <header class="cabecera">
+    <div class="envoltorio">
+      <nav class="migas" aria-label="Miga de pan">
+        <a href="/">Marcos Guerrero</a>
+        <span aria-hidden="true">/</span>
+        <span class="apagado">Proyecto</span>
+      </nav>
+      <h1>{titulo}</h1>
+      <p class="entrada lectura">{resumen}</p>
     </div>
+  </header>
 
-    <hr />
+  <div class="envoltorio">
+    <article class="prosa">
+      <slot />
+    </article>
 
-    <p class="cierre">
-      <a href={repo}>Código en GitHub</a>
-      <br />
-      <a href="/">Volver al inicio</a>
-    </p>
-  </article>
+    <footer class="pie">
+      <p>
+        <a href={repo}>Ver el código en GitHub →</a>
+      </p>
+      <p><a href="/">← Volver al inicio</a></p>
+    </footer>
+  </div>
 </Base>
 
 <style>
-  .resumen {
+  .cabecera {
+    background: var(--superficie);
+    border-bottom: 1px solid var(--linea);
+    padding-block: 40px 56px;
+    margin-bottom: 56px;
+  }
+
+  @media (min-width: 768px) {
+    .cabecera {
+      padding-block: 56px 72px;
+      margin-bottom: 72px;
+    }
+  }
+
+  .migas {
+    font-family: var(--mono);
+    font-size: var(--t--1);
+    letter-spacing: 0.06em;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .migas a {
+    text-decoration: none;
+    color: var(--acento);
+  }
+
+  .migas a:hover {
+    text-decoration: underline;
+  }
+
+  .migas span[aria-hidden] {
+    color: var(--linea-fuerte);
+  }
+
+  .entrada {
     font-size: var(--t-1);
-    line-height: 1.5;
-    max-width: 46ch;
-    margin-top: 24px;
+    line-height: 1.55;
+    color: var(--apagado);
+    margin-top: 20px;
   }
 
-  hr {
-    margin-block: 64px;
-  }
-
-  /* El rotulo de vuelta no debe leerse como un enlace de cuerpo: hereda el gris
-     y solo se subraya, sin el acento. */
-  .rotulo a {
-    color: inherit;
-    text-decoration-color: var(--linea);
-  }
-
-  .cierre {
+  .pie {
+    margin-top: 72px;
+    padding-block: 32px 72px;
+    border-top: 1px solid var(--linea);
     font-family: var(--mono);
     font-size: var(--t--1);
     line-height: 2.2;
+  }
+
+  .pie a {
+    text-decoration: none;
+    border-bottom: 1px solid var(--acento);
+    padding-bottom: 2px;
   }
 </style>

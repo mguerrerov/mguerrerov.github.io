@@ -1,0 +1,82 @@
+---
+// Flujo horizontal compacto para la home: las etapas de un proyecto en una
+// sola linea. Es la version reducida del diagrama de la pagina de detalle.
+interface Props {
+  etapas: string[];
+  /** Indice de la etapa que lleva el acento. Solo una por diagrama. */
+  destacada?: number;
+  titulo: string;
+}
+
+const { etapas, destacada, titulo } = Astro.props;
+
+// Geometria: cada etapa ocupa un ancho proporcional a su texto, con una flecha
+// de 22 px entre cada par. El viewBox se calcula a partir de eso.
+const CAR = 6.6; // ancho aproximado de un caracter a 11px en monoespaciada
+const ALTO = 34;
+const HUECO = 22;
+
+const anchos = etapas.map((e) => Math.round(e.length * CAR) + 24);
+const total = anchos.reduce((a, b) => a + b, 0) + HUECO * (etapas.length - 1);
+
+let x = 0;
+const cajas = etapas.map((etapa, i) => {
+  const caja = { x, ancho: anchos[i], etapa, i };
+  x += anchos[i] + HUECO;
+  return caja;
+});
+---
+
+<svg
+  viewBox={`0 0 ${total} ${ALTO}`}
+  role="img"
+  aria-label={titulo}
+  style="max-width:100%;height:auto"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <title>{titulo}</title>
+  {
+    cajas.map((c) => (
+      <>
+        <rect
+          x={c.x + 0.5}
+          y="0.5"
+          width={c.ancho - 1}
+          height={ALTO - 1}
+          fill="none"
+          stroke={c.i === destacada ? 'var(--acento)' : 'var(--linea)'}
+          stroke-width="1"
+          rx="4"
+        />
+        <text
+          x={c.x + c.ancho / 2}
+          y={ALTO / 2 + 4}
+          text-anchor="middle"
+          font-family="'JetBrains Mono', ui-monospace, monospace"
+          font-size="11"
+          fill={c.i === destacada ? 'var(--acento)' : 'var(--apagado)'}
+        >
+          {c.etapa}
+        </text>
+        {c.i < cajas.length - 1 && (
+          <line
+            x1={c.x + c.ancho + 5}
+            y1={ALTO / 2}
+            x2={c.x + c.ancho + HUECO - 5}
+            y2={ALTO / 2}
+            stroke="var(--apagado)"
+            stroke-width="1"
+          />
+        )}
+      </>
+    ))
+  }
+</svg>
+
+<style>
+  svg {
+    display: block;
+    margin-block: 24px;
+    overflow: visible;
+  }
+</style>

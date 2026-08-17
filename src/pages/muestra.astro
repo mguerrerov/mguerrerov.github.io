@@ -6,19 +6,24 @@ import Base from '../layouts/Base.astro';
 ---
 
 <Base titulo="Muestra tipografica" descripcion="Pagina de muestra del sistema de diseño." indexable={false}>
+  <div class="envoltorio">
   <section class="seccion">
     <p class="rotulo">00 — Muestra</p>
+    <div class="contenido">
     <h1>Titular de primer nivel en serif</h1>
     <p class="apagado">
       Linea de apoyo en texto secundario, para comprobar el contraste del gris
       apagado sobre el fondo hueso y cuanto pesa junto al titular.
     </p>
+  
+    </div>
   </section>
 
   <hr />
 
   <section class="seccion">
     <p class="rotulo">01 — Cuerpo y enlaces</p>
+    <div class="contenido">
     <h2>Titular de segundo nivel</h2>
     <p>
       Parrafo de cuerpo a un rem con interlineado de uno coma seis. El ancho de
@@ -38,24 +43,30 @@ import Base from '../layouts/Base.astro';
       el serif solo tiene un peso, asi que la jerarquia la marcan el tamano y el
       interletrado.
     </p>
+  
+    </div>
   </section>
 
   <hr />
 
   <section class="seccion">
     <p class="rotulo">02 — Lista</p>
+    <div class="contenido">
     <ul class="lista">
       <li>Primer elemento de una lista, con raya en lugar de bolo</li>
       <li>Segundo elemento, algo mas largo, para ver como sangra al partirse en dos lineas cuando el ancho se acaba</li>
       <li>Tercer elemento</li>
     </ul>
+  
+    </div>
   </section>
 
   <hr />
 
   <section class="seccion">
     <p class="rotulo">03 — Tira de metricas</p>
-    <dl class="metricas">
+    <div class="contenido">
+    <dl class="metricas-lista">
       <dt>etiqueta corta</dt>
       <dd>000,0 M</dd>
       <dt>transformacion de formato</dt>
@@ -65,6 +76,8 @@ import Base from '../layouts/Base.astro';
       <dt>coste</dt>
       <dd>0 €</dd>
     </dl>
+  
+    </div>
   </section>
 
   <hr />
@@ -72,6 +85,7 @@ import Base from '../layouts/Base.astro';
   <section class="seccion">
     <p class="apagado">Fin de la muestra.</p>
   </section>
+  </div>
 </Base>
 
 <style>
