@@ -3,6 +3,7 @@
 // bloques blancos sobre fondo azulado, y datos en listas alineadas.
 import Base from '../layouts/Base.astro';
 import MiniFlujo from '../components/MiniFlujo.astro';
+import AvisoDesarrollo from '../components/AvisoDesarrollo.astro';
 
 const cifras = [
   { valor: '1.311 M', etiqueta: 'eventos procesados' },
@@ -56,6 +57,8 @@ const cifras = [
           los pull requests abre ya un agente automático y cuánto tarda cada uno
           en recibir revisión.
         </p>
+
+        <AvisoDesarrollo texto="Sigue en construcción: las cifras son las del estado actual y pueden cambiar." />
 
         <MiniFlujo
           titulo="Etapas: descarga, bronze, silver y calidad"
