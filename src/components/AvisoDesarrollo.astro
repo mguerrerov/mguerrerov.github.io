@@ -1,0 +1,37 @@
+---
+// Aviso de que un proyecto sigue en desarrollo. Sin caja ni fondo: solo una
+// regla de acento a la izquierda y la etiqueta en monoespaciada.
+interface Props {
+  texto?: string;
+}
+
+const {
+  texto = 'El pipeline sigue en construcción. Las cifras y las decisiones que se describen aquí son las del estado actual y pueden cambiar.',
+} = Astro.props;
+---
+
+<aside class="aviso" role="note">
+  <p class="etiqueta">En desarrollo</p>
+  <p>{texto}</p>
+</aside>
+
+<style>
+  .aviso {
+    border-left: 2px solid var(--acento);
+    padding-left: 20px;
+    margin-block: 2.4em;
+  }
+
+  .etiqueta {
+    font-family: var(--mono);
+    font-size: var(--t--1);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--acento);
+    margin-bottom: 8px;
+  }
+
+  .aviso p:last-child {
+    color: var(--apagado);
+  }
+</style>
