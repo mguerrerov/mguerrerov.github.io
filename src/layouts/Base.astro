@@ -35,7 +35,11 @@ const canonica = new URL(Astro.url.pathname, Astro.site).href;
     <meta property="og:title" content={titulo} />
     {descripcion && <meta property="og:description" content={descripcion} />}
     <meta property="og:url" content={canonica} />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content={new URL('/og.png', Astro.site).href} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Marcos Guerrero, datos e inteligencia artificial" />
+    <meta name="twitter:card" content="summary_large_image" />
 
     <!-- Se precargan la fuente de cuerpo y la de titulares: son las dos que
          entran en la primera pantalla. El serif se anadio al medir un

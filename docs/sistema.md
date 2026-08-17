@@ -97,6 +97,30 @@ se notaba justo en el titular: con la precarga bajó a **0**.
 
 El sitio entero pesa 175 KB y no sirve ni un byte de JavaScript.
 
+## Imagen de previsualización
+
+`public/og.png`, 1200×630. Tarjeta tipográfica con el nombre, el oficio y tres
+cifras: se lee en miniatura, que es como se ve en LinkedIn y en WhatsApp. Una
+captura del sitio quedaría ilegible a ese tamaño.
+
+Tiene que ser PNG o JPG. SVG no lo renderizan ni LinkedIn, ni WhatsApp, ni
+Twitter.
+
+Se genera desde `herramientas/og.html` con Chrome, así que usa las fuentes y los
+colores reales del sitio. **Al cambiar la paleta hay que regenerarla:**
+
+```bash
+"/c/Program Files/Google/Chrome/Application/chrome.exe" \
+  --headless --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
+  --window-size=1200,630 \
+  --screenshot="$(pwd -W)/public/og.png" \
+  "$(pwd -W)/herramientas/og.html"
+```
+
+La misma imagen sirve para todas las páginas. Una por proyecto se vería mejor al
+compartir un enlace concreto, pero obliga a regenerar tres imágenes cada vez que
+cambie una cifra.
+
 ## Se mantiene del brief original
 
 Sin degradados. Sin sombras. Sin glassmorphism. Sin iconos de librería. Sin

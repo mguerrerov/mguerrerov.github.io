@@ -1,0 +1,135 @@
+<!doctype html>
+<!--
+  Plantilla de la imagen de previsualizacion (Open Graph), 1200x630.
+  Se convierte a PNG con Chrome en modo headless:
+
+    chrome --headless --disable-gpu --hide-scrollbars \
+           --window-size=1200,630 --screenshot=public/og.png \
+           herramientas/og.html
+
+  El comando completo, con la ruta de Chrome en Windows, esta en
+  docs/sistema.md. Al tocar la paleta del sitio, hay que regenerarla.
+-->
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @font-face {
+        font-family: 'Instrument Serif';
+        src: url('../public/fonts/instrument-serif-400-latin.woff2') format('woff2');
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: 'Public Sans';
+        src: url('../public/fonts/public-sans-var-latin.woff2') format('woff2');
+        font-weight: 400 600;
+      }
+      @font-face {
+        font-family: 'JetBrains Mono';
+        src: url('../public/fonts/jetbrains-mono-400-latin.woff2') format('woff2');
+        font-weight: 400;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        width: 1200px;
+        height: 630px;
+        background: #ffffff;
+        color: #0f1d33;
+        font-family: 'Public Sans', sans-serif;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 72px 80px;
+        /* Franja de acento a la izquierda, del alto completo. */
+        border-left: 16px solid #1a5fb4;
+      }
+
+      .oficio {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 26px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #1a5fb4;
+      }
+
+      h1 {
+        font-family: 'Instrument Serif', Georgia, serif;
+        font-size: 128px;
+        font-weight: 400;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        margin-top: 28px;
+      }
+
+      .entrada {
+        font-size: 34px;
+        line-height: 1.35;
+        color: #55657d;
+        max-width: 26ch;
+        margin-top: 24px;
+      }
+
+      .cifras {
+        display: flex;
+        gap: 64px;
+        align-items: baseline;
+        border-top: 2px solid #dce3ec;
+        padding-top: 32px;
+      }
+
+      .cifra .valor {
+        font-family: 'Instrument Serif', Georgia, serif;
+        font-size: 52px;
+        line-height: 1.1;
+      }
+
+      .cifra .etiqueta {
+        white-space: nowrap;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 19px;
+        white-space: nowrap;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #55657d;
+        margin-top: 6px;
+      }
+
+      .dominio {
+        margin-left: auto;
+        align-self: baseline;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 22px;
+        color: #55657d;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <p class="oficio">Datos e inteligencia artificial</p>
+      <h1>Marcos Guerrero</h1>
+      <p class="entrada">Preparo y proceso datos para que respondan preguntas.</p>
+    </div>
+
+    <div class="cifras">
+      <div class="cifra">
+        <div class="valor">1.311 M</div>
+        <div class="etiqueta">eventos</div>
+      </div>
+      <div class="cifra">
+        <div class="valor">12,5</div>
+        <div class="etiqueta">meses de histórico</div>
+      </div>
+      <div class="cifra">
+        <div class="valor">0 €</div>
+        <div class="etiqueta">coste</div>
+      </div>
+      <div class="dominio">mguerrerov.github.io</div>
+    </div>
+  </body>
+</html>
