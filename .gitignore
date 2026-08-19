@@ -1,8 +1,9 @@
 # Material de referencia con datos personales. Nunca se commitea.
 recursos/
 
-# Especificaciones del proyecto. Se quedan en local: el repositorio es publico.
-CLAUDE-portfolio.md
+# Las especificaciones y las notas de trabajo se quedan en local. Sus nombres se
+# excluyen desde .git/info/exclude, que no se versiona: listarlos aqui los haria
+# publicos, que es justo lo que se quiere evitar.
 
 # Dependencias y artefactos de build
 node_modules/
