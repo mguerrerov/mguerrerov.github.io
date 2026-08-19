@@ -8,7 +8,7 @@ import AvisoDesarrollo from '../components/AvisoDesarrollo.astro';
 const cifras = [
   { valor: '1.311 M', etiqueta: 'eventos procesados' },
   { valor: '12,5', etiqueta: 'meses de histórico' },
-  { valor: '3', etiqueta: 'proyectos publicados' },
+  { valor: '4', etiqueta: 'proyectos publicados' },
   { valor: '0 €', etiqueta: 'coste de infraestructura' },
 ];
 ---
@@ -100,6 +100,62 @@ const cifras = [
         </ul>
 
         <p class="mas"><a href="/proyectos/gh-archive/">Leer cómo está hecho →</a></p>
+      </article>
+
+      <article class="tarjeta proyecto">
+        <h3 class="titulo-grande">Pipeline en tiempo real de Wikipedia</h3>
+
+        <AvisoDesarrollo texto="Las capas locales están terminadas y medidas; el equivalente en AWS está validado pero sin aplicar." />
+
+        <p class="lectura">
+          Wikimedia publica cada cambio de cada wiki en cuanto ocurre. El pipeline
+          los recoge, los ordena en tres capas y responde por ventanas de un minuto
+          qué páginas está editando más de una persona a la vez y qué parte de la
+          actividad es humana.
+        </p>
+
+        <MiniFlujo
+          titulo="Etapas: fuente, cola, bronce, plata, oro y AWS"
+          etapas={['wikimedia sse', 'cola', 'bronce', 'plata', 'oro', 'aws']}
+          destacada={5}
+        />
+
+        <dl class="metricas-lista">
+          <dt>ritmo de la fuente</dt>
+          <dd>37,4 ev/s sostenidos</dd>
+
+          <dt>latencia p50</dt>
+          <dd>15,59 s</dd>
+
+          <dt>duplicados en silver</dt>
+          <dd>0 sobre 71.484 filas</dd>
+
+          <dt>huecos en bronze</dt>
+          <dd>0</dd>
+
+          <dt>coste de infraestructura</dt>
+          <dd>0 €</dd>
+        </dl>
+
+        <p class="lectura">
+          El mismo código corre en un portátil y en AWS sin bifurcarse. Lo difícil no
+          fue quitar el condicional que separa los dos entornos, sino descubrir que
+          la diferencia se había colado igual, columna a columna, por debajo de la
+          abstracción que existía para impedirlo.
+        </p>
+
+        <ul class="etiquetas">
+          <li>spark streaming</li>
+          <li>kafka</li>
+          <li>kinesis</li>
+          <li>iceberg</li>
+          <li>terraform</li>
+          <li>docker</li>
+        </ul>
+
+        <p class="mas">
+          <a href="/proyectos/wikipedia-tiempo-real/">Leer cómo está hecho →</a>
+        </p>
       </article>
 
       <div class="rejilla">

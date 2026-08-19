@@ -1,0 +1,208 @@
+---
+layout: ../../layouts/Proyecto.astro
+titulo: Pipeline en tiempo real de Wikipedia
+resumen: Cada edición de Wikimedia, recogida del stream público y respondida en ventanas de un minuto. El mismo código en un portátil y en AWS.
+repo: https://github.com/mguerrerov/wikipedia-realtime-pipeline
+---
+
+import Metricas from '../../components/MetricasWikipedia.astro';
+import Diagrama from '../../components/DiagramaWikipedia.astro';
+import AvisoDesarrollo from '../../components/AvisoDesarrollo.astro';
+
+<AvisoDesarrollo />
+
+## Qué problema resuelve
+
+Wikimedia publica cada cambio de cada wiki en un stream abierto, sin autenticación, en
+cuanto ocurre. Quería usarlo para responder tres preguntas: cuánta actividad tiene cada
+wiki minuto a minuto, qué parte de los cambios la hacen bots y cuál personas, y qué
+páginas está editando más de una persona **a la vez**.
+
+Las tres se pueden responder con un proceso por lotes que corra una vez al día, y las
+tres saldrían mal. La segunda es la que lo demuestra: medida sobre datos reales, la
+proporción de bots osciló entre el 27,8 % y el 35,2 % en siete ventanas de una misma
+ejecución, y una captura anterior en otra franja horaria había dado un 41,1 %. Un número
+único al día promedia esa variación hasta hacerla desaparecer, y con ella la respuesta.
+
+La tercera ni siquiera se puede formular por lotes. "A la vez" es una propiedad de la
+ventana, no del día.
+
+El segundo objetivo era que el pipeline corriera en dos sitios sin bifurcarse: en un
+portátil con Docker Compose y en AWS sobre Kinesis y EMR Serverless. La regla que me puse
+fue que no apareciera ni un `if entorno == "aws"` dentro de los jobs. Estuve a punto de
+incumplirla sin darme cuenta, y eso está más abajo.
+
+<Metricas />
+
+## Arquitectura
+
+<Diagrama />
+
+## Decisiones y trade-offs
+
+### El tiempo de evento es `meta.dt`, no `timestamp`
+
+Cada evento trae dos marcas de tiempo. `timestamp` es cuándo ocurrió el cambio en
+MediaWiki, y es la que intuitivamente parece correcta para agrupar por ventanas.
+
+Medí las dos sobre una captura de diez minutos antes de escribir nada. `timestamp` llega
+fuera de orden el 62,35 % de las veces, con un retraso máximo de **19,3 años**: son
+eventos `log` de Commons, donde ese campo guarda la fecha original del fichero, no la del
+cambio. `meta.dt` —cuándo lo publicó el bus— va desordenado el 1,28 %, con un máximo de
+0,99 s.
+
+Con `timestamp` como eje temporal, cualquier watermark razonable habría descartado
+silenciosamente una parte del tráfico, y el pipeline habría parecido sano. Uso `meta.dt` y
+conservo `timestamp` como columna de negocio. El coste es que las ventanas miden cuándo
+Wikimedia publicó el cambio y no cuándo ocurrió: 1,7 s de diferencia en la mediana.
+
+### Bronze guarda el JSON sin parsear
+
+La capa de entrada escribe el evento como texto, tal cual llegó, más los metadatos del
+sobre de la cola: partición, desplazamiento y marca de tiempo.
+
+Es más caro en disco que tipar desde el principio, y lo hago igual por dos razones. La
+primera es que si Wikimedia cambia el esquema mañana, Bronze sigue ingiriendo y el
+problema se resuelve en Silver con los datos crudos todavía disponibles. La segunda es que
+`(partición, desplazamiento)` identifica unívocamente cada mensaje, y los desplazamientos
+de una partición son consecutivos: eso permite demostrar que un reinicio no perdió ni
+duplicó nada con un método **exacto**, no aproximado. Sobre dos ejecuciones con parada y
+arranque entre medias, 25.911 filas, cero duplicados y cero huecos.
+
+### Watermark de 30 segundos
+
+El desorden de la fuente está por debajo del segundo, así que 30 s son dos órdenes de
+magnitud de margen. No los puse por el desorden: los puse por lo que de verdad puede
+retrasar un evento, que es una reconexión del productor o un atasco de consumo de Spark.
+
+Lo validé inyectando eventos retrasados a propósito con un generador sintético. Hasta 30 s
+de retraso sobrevive el 100 %; entre 30 y 45 s, el 93,6 %; entre 45 y 60 s, el 10,1 %; por
+encima de 60 s no sobrevive ninguno. El corte no cae limpio en el segundo 30 porque el
+watermark solo avanza entre micro-lotes, así que el umbral efectivo es 30 s más lo que
+tarde el lote en curso. Esa banda de transición es el comportamiento correcto, no un
+defecto de la medida.
+
+También deduplico dentro de esa ventana en vez de recordar todos los identificadores
+vistos. La versión sin watermark guarda cada `meta.id` **para siempre**: el estado crece
+sin límite y el job acaba muriendo por memoria. El precio es que un duplicado separado más
+de 30 s de su original no se detecta, y lo acepto porque los duplicados vienen de
+reconexiones y reprocesos, que ocurren en segundos.
+
+### Ventana deslizante solo para las páginas concurrentes
+
+Las dos primeras preguntas usan ventana fija de un minuto. La tercera usa una deslizante
+de cinco minutos que avanza cada minuto, y cuesta cinco veces más estado.
+
+Con ventana fija, dos personas editando la misma página a las 10:00:59 y a las 10:01:01
+caen en ventanas distintas y la coincidencia no aparece. Que es exactamente lo que la
+pregunta busca detectar.
+
+### Un shard de Kinesis aprovisionado, no bajo demanda
+
+El modo bajo demanda escala solo y cobra una cuota base por hora bastante más alta.
+Compensa con tráfico irregular o grande, y aquí el caudal está medido y es estable: 37,4
+ev/s de media, pico de 114, unos 53 KB/s. Un shard admite 1 MB/s, veinte veces lo que hace
+falta.
+
+Si el caudal se disparase habría que añadir shards a mano. Con esta fuente no va a pasar.
+
+## Qué se rompió y cómo lo arreglé
+
+### Funcionaba en local y no habría arrancado en AWS
+
+Este es el error del que más aprendí, y no dio ningún síntoma.
+
+Había escrito una abstracción de la fuente de eventos para que el job no supiera si leía
+de Kafka o de Kinesis. Le daba a Spark el formato y las opciones de lectura, y me pareció
+suficiente. No lo era: Kafka devuelve columnas `key, value, topic, partition, offset,
+timestamp` y Kinesis devuelve `data, streamName, partitionKey, sequenceNumber,
+approximateArrivalTimestamp`. Y `bronce.py` hacía `F.col("offset")`.
+
+No había ningún `if entorno == "aws"` en ninguna parte. La diferencia de entorno se había
+filtrado igual, columna a columna, por debajo de la abstracción que existía para
+impedirlo. En local funcionaba perfectamente.
+
+Lo descubrí leyendo la documentación de EMR antes de escribir el Terraform, no ejecutando
+nada en AWS. La abstracción pasó a normalizar el sobre entero a un esquema común, no solo
+a dar el formato. El coste es que `desplazamiento` tuvo que pasar a texto, porque el
+número de secuencia de Kinesis tiene 56 dígitos y no cabe en un `BIGINT`, así que el
+recuento de huecos necesita un `CAST` y solo aplica a Kafka.
+
+La lección que me llevo: una abstracción que no se ha ejercitado contra las dos
+implementaciones no está probada, solo escrita.
+
+### Una JAR que existía y aun así no cargaba
+
+El job moría al crear la sesión de Spark con `UnsupportedClassVersionError`, class file
+61.0 contra un runtime que reconocía hasta la 55.0.
+
+Yo había verificado que el artefacto de Iceberg existiera para mi versión de Spark y mi
+versión de Scala. Existe. Lo que no había mirado es el tercer eje: class file 61 es Java
+17, y las etiquetas cortas de la imagen de `apache/spark` traen Java 11. Que una JAR
+exista para tu Spark y tu Scala no significa que funcione con tu Java.
+
+La solución fue la etiqueta larga de la misma versión de Spark, que solo cambia el
+runtime. Descarté bajar Iceberg a una versión compilada para Java 11: ata el proyecto a
+una dependencia más antigua para arreglar un problema que no está en esa dependencia. De
+carambola, quedó alineado con Corretto 17, que es lo que usa EMR 7.x.
+
+### Fijé las versiones mirando el portátil en vez de mirar el destino
+
+La primera matriz de versiones ponía Spark 3.5.9 e Iceberg 1.11.0, que era lo más reciente
+publicado. Al verificar la documentación de AWS resultó que EMR Serverless 7.13.0 trae
+Spark 3.5.6 e Iceberg 1.10.0.
+
+Bajé el entorno local a esas dos. Es más fácil bajar una versión en el portátil que
+discutir con AWS, y el objetivo del proyecto era que los jobs fuesen idénticos en los dos
+entornos. Hadoop y Scala no cambiaban, así que el ajuste tocó solo dos piezas.
+
+Aproveché para verificar las siete JAR una a una con una petición a Maven Central, en vez
+de darlas por buenas. Dos de ellas eran dependencias transitivas del conector de Kafka que
+no había declarado: sin ellas el job arranca y falla al leer, que es la forma más cara de
+enterarse de que falta un fichero.
+
+### Los puntos de control ocupaban trece veces más que los datos
+
+Fui a medir cuánto ocupaba el pipeline en disco para dimensionar S3. Las tres capas de
+datos sumaban 13,7 MB. El directorio de puntos de control, **180 MB**.
+
+No es un fallo: Spark conserva por defecto las últimas cien versiones del estado de cada
+consulta, y aquí hay cinco consultas con estado, tres de ellas con agregación por ventana.
+Lo que me interesó es la consecuencia, que va contra la intuición: dimensionar el
+almacenamiento por el volumen de datos deja fuera justo la parte que más ocupa. Queda
+pendiente bajar `minBatchesToRetain` antes de subir esto a AWS.
+
+### El generador sintético contaminó la respuesta
+
+Había usado el generador para provocar retrasos y duplicados que la fuente real no
+produce. Al mirar la tabla de páginas concurrentes, estaba llena de títulos inventados: 400
+títulos y 60 usuarios sintéticos generan mucha más coincidencia que el tráfico real. Y el
+generador produce un 41 % de bots por construcción, así que también había ensuciado la
+proporción humano/bot.
+
+La opción fácil era filtrar los eventos sintéticos por su comentario dentro de los jobs de
+Gold. La descarté: eso mete lógica de pruebas en el código de producción. Los ensayos del
+generador pasaron a correr sobre volúmenes desechables, y antes de cualquier ejecución
+destinada a medir, `docker compose down -v` y empezar limpio solo con la fuente real.
+
+Cuesta unos diez minutos rehacer la ingesta. Es barato al lado de publicar un número
+contaminado. Las cifras anteriores quedaron marcadas como no utilizables en vez de
+borradas.
+
+### Una medición de latencia que medía otra cosa
+
+La primera medición extremo a extremo dio un p50 de 106,84 s y me pareció altísima.
+
+Lo era porque Silver estaba recuperando el histórico acumulado en Bronze mientras yo
+medía: lo que estaba cronometrando era la velocidad de recuperación, no la latencia del
+pipeline en marcha. Repetida con las tres capas arrancadas escalonadas y sin cola
+acumulada, sobre 18.556 filas, el p50 quedó en 15,59 s y el p95 en 55,75 s.
+
+El p50 encaja con el suelo teórico: dos disparadores encadenados de diez segundos, uno en
+Bronze y otro en Silver. La cola hasta 82 s son eventos que llegan justo después de
+cerrarse un micro-lote y esperan al siguiente en cada una de las dos capas. Bajarlo es
+cuestión de acortar los disparadores, a cambio de más ficheros pequeños en Iceberg, y no
+lo he tocado porque 15 s sobra para las preguntas de este pipeline.
+
+Dejé la medición mala documentada junto a la buena, marcada como descartada. El error es
+más instructivo que el número.

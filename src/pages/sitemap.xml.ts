@@ -6,6 +6,7 @@ import type { APIRoute } from 'astro';
 const RUTAS = [
   '/',
   '/proyectos/gh-archive/',
+  '/proyectos/wikipedia-tiempo-real/',
   '/proyectos/recomendador-candidatos/',
   '/proyectos/deteccion-fraude/',
 ];
