@@ -130,3 +130,20 @@ pie, rotulos— vive en `src/i18n/textos.ts`.
 Los iconos y los emoji estan prohibidos en el sitio, y una bandera nombra un
 pais y no un idioma: `ES / EN` en monoespaciada dice lo mismo sin ninguna de las
 dos cosas.
+
+## Fase 7 — CV descargable
+
+**El CV se sirve en el idioma de la pagina, no en uno solo.**
+El enlace sale del diccionario (`ficheroCv`), asi que `/` ofrece el PDF español y
+`/en/` el ingles sin ninguna logica adicional. Es el mismo mecanismo que ya
+resuelve el resto de los textos repetidos.
+
+**Es un enlace mas de la cabecera, no un boton.**
+Entra en la tira `Ver proyectos · Contacto · Descargar CV` en monoespaciada, sin
+fondo de acento ni caja: el sistema no tiene botones y no se le inventa uno para
+esto. El atributo `download` hace el resto.
+
+**El CI comprueba que solo se publican esos dos PDF.**
+El filtro de datos personales no puede mirar dentro de un PDF —el texto va
+comprimido y grep solo dice «Binary file matches»—, asi que los excluye y a
+cambio verifica la lista de PDF publicados. Un tercero haria fallar el build.

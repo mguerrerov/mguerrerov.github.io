@@ -15,6 +15,9 @@ const TEXTOS = {
     rotuloIdioma: 'Idioma',
     localeOg: 'es_ES',
     enDesarrollo: 'En desarrollo',
+    // El CV se sirve en el idioma de la pagina desde la que se descarga.
+    descargarCv: 'Descargar CV',
+    ficheroCv: '/cv-marcos-guerrero-es.pdf',
     avisoGenerico:
       'El pipeline sigue en construcción. Las cifras y las decisiones que se describen aquí son las del estado actual y pueden cambiar.',
   },
@@ -28,6 +31,8 @@ const TEXTOS = {
     rotuloIdioma: 'Language',
     localeOg: 'en_US',
     enDesarrollo: 'Work in progress',
+    descargarCv: 'Download CV',
+    ficheroCv: '/cv-marcos-guerrero-en.pdf',
     avisoGenerico:
       'The pipeline is still under construction. The figures and the decisions described here reflect the current state and may change.',
   },

@@ -62,10 +62,33 @@ jobs:
       # Permitidos: el email profesional, unico dato de contacto que el sitio
       # puede publicar, y el identificador del perfil publico de LinkedIn, que
       # forma parte de su URL.
+      # Los PDF del CV quedan fuera de este filtro de texto, y no por comodidad:
+      #
+      #   1. grep no puede inspeccionar su contenido. El texto de un PDF va
+      #      comprimido, asi que solo responde "Binary file matches" y no dice
+      #      que ha encontrado: no aporta ninguna senal util.
+      #   2. El CV se publica DELIBERADAMENTE con el telefono del autor, que es
+      #      decision suya y excepcion consciente a la regla general del
+      #      proyecto. Esta anotada en CLAUDE-portfolio.md.
+      #
+      # Lo que si se comprueba es que los unicos PDF publicados son los dos del
+      # CV: cualquier otro PDF que aparezca en dist/ para la verificacion.
+      - name: Comprobar que solo se publican los dos PDF del CV
+        run: |
+          esperados="cv-marcos-guerrero-en.pdf cv-marcos-guerrero-es.pdf"
+          encontrados=$(find dist/ -name '*.pdf' -printf '%f\n' | sort | tr '\n' ' ')
+          if [ "$encontrados" != "$esperados " ]; then
+            echo "ERROR: los PDF publicados no son los esperados."
+            echo "  esperados:   $esperados"
+            echo "  encontrados: $encontrados"
+            exit 1
+          fi
+          echo "OK: solo estan los dos PDF del CV."
+
       - name: Comprobar que no hay datos personales en el build
         run: |
           permitidos='^(marcosguerrerov27@gmail\.com|318683299)$'
-          fugas=$(grep -rhoiE \
+          fugas=$(grep -rhoiE --exclude='*.pdf' \
               "\+34[0-9]{9}|[0-9]{9}|[a-z0-9._%+-]+@(gmail|hotmail|outlook)\.[a-z.]+" \
               dist/ \
             | sort -u \
