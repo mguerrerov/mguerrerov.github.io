@@ -1,7 +1,11 @@
 # Configuracion de despliegue en Netlify.
 #
-# Netlify construye el sitio por su cuenta desde este fichero, asi que el
-# workflow de GitHub Actions ya no despliega: solo verifica.
+# El sitio NO esta conectado al repositorio de GitHub: se publica a mano con
+# `npm run desplegar`, que construye y sube dist/ con la CLI. Un push a GitHub
+# por si solo no cambia nada de lo que se ve en Netlify.
+#
+# Estos valores quedan por si algun dia se conecta el repositorio; mientras
+# tanto solo sirven de referencia del comando y el directorio correctos.
 
 [build]
   command = "npm run build"

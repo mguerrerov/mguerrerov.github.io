@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "desplegar": "astro build && npx --yes netlify-cli deploy --prod --dir=dist"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.14",
