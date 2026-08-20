@@ -5,6 +5,7 @@ import Base from '../../layouts/Base.astro';
 import MiniFlujo from '../../components/MiniFlujo.astro';
 import AvisoDesarrollo from '../../components/AvisoDesarrollo.astro';
 import Idioma from '../../components/Idioma.astro';
+import { textos } from '../../i18n/textos';
 
 const cifras = [
   { valor: '1,311 M', etiqueta: 'events processed' },
@@ -12,6 +13,7 @@ const cifras = [
   { valor: '4', etiqueta: 'published projects' },
   { valor: '0 €', etiqueta: 'infrastructure cost' },
 ];
+const t = textos('en');
 ---
 
 <Base
@@ -21,15 +23,15 @@ const cifras = [
   <header class="cabecera">
     <div class="envoltorio">
       <Idioma />
-      <!-- BORRADOR: las DOS lineas de presentacion que siguen -el rotulo de
+      {/* BORRADOR: las DOS lineas de presentacion que siguen -el rotulo de
            oficio y el parrafo de entrada- son traduccion pendiente de
            reescritura por el autor. La voz de la presentacion es suya; esto es
            solo un punto de partida. Abarca <p class="oficio"> y
-           <p class="entrada">, no solo el parrafo. -->
+           <p class="entrada">, no solo el parrafo. */}
       <p class="oficio">Data and artificial intelligence</p>
       <h1>Marcos Guerrero</h1>
-      <!-- BORRADOR (2 de 2): sigue la segunda linea de presentacion, tambien
-           pendiente de reescritura por el autor. -->
+      {/* BORRADOR (2 de 2): sigue la segunda linea de presentacion, tambien
+           pendiente de reescritura por el autor. */}
       <p class="entrada lectura">
         I prepare and process data so it answers questions: from the raw dump to
         the trained model and the report someone uses to decide.
@@ -111,7 +113,7 @@ const cifras = [
           <li>github actions</li>
         </ul>
 
-        <p class="mas"><a href="/en/proyectos/gh-archive/">Read how it works →</a></p>
+        <p class="mas"><a href="/en/proyectos/gh-archive/">{t.leerMas}</a></p>
       </article>
 
       <article class="tarjeta proyecto">
@@ -169,7 +171,7 @@ const cifras = [
         </ul>
 
         <p class="mas">
-          <a href="/en/proyectos/wikipedia-tiempo-real/">Read how it works →</a>
+          <a href="/en/proyectos/wikipedia-tiempo-real/">{t.leerMas}</a>
         </p>
       </article>
 
@@ -199,7 +201,7 @@ const cifras = [
           </ul>
 
           <p class="mas">
-            <a href="/en/proyectos/recomendador-candidatos/">Read how it works →</a>
+            <a href="/en/proyectos/recomendador-candidatos/">{t.leerMas}</a>
           </p>
         </article>
 
@@ -226,7 +228,7 @@ const cifras = [
             <li>pandas</li>
           </ul>
 
-          <p class="mas"><a href="/en/proyectos/deteccion-fraude/">Read how it works →</a></p>
+          <p class="mas"><a href="/en/proyectos/deteccion-fraude/">{t.leerMas}</a></p>
         </article>
       </div>
     </section>
