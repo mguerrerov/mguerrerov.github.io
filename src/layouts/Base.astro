@@ -1,20 +1,31 @@
 ---
 import '../styles/base.css';
+import { idiomaDeRuta, rutaAlterna, textos, type Idioma } from '../i18n/textos';
 
 interface Props {
   titulo: string;
   descripcion?: string;
   indexable?: boolean;
+  idioma?: Idioma;
 }
 
 const { titulo, descripcion, indexable = true } = Astro.props;
 
+const idioma: Idioma = Astro.props.idioma ?? idiomaDeRuta(Astro.url.pathname);
+const t = textos(idioma);
+
 // URL absoluta de esta pagina, para el canonical y para Open Graph.
 const canonica = new URL(Astro.url.pathname, Astro.site).href;
+
+// Pareja de esta pagina en el otro idioma, para los hreflang. El canonical
+// sigue apuntando a si misma: son dos paginas distintas, no duplicados.
+const alterna = new URL(rutaAlterna(Astro.url.pathname), Astro.site).href;
+const enEspanol = idioma === 'es' ? canonica : alterna;
+const enIngles = idioma === 'es' ? alterna : canonica;
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang={idioma}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -23,6 +34,15 @@ const canonica = new URL(Astro.url.pathname, Astro.site).href;
     {descripcion && <meta name="description" content={descripcion} />}
     {!indexable && <meta name="robots" content="noindex" />}
     <link rel="canonical" href={canonica} />
+    {
+      indexable && (
+        <>
+          <link rel="alternate" hreflang="es" href={enEspanol} />
+          <link rel="alternate" hreflang="en" href={enIngles} />
+          <link rel="alternate" hreflang="x-default" href={enEspanol} />
+        </>
+      )
+    }
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="theme-color" content="#f7f9fc" />
@@ -31,7 +51,7 @@ const canonica = new URL(Astro.url.pathname, Astro.site).href;
          la pagina y su descripcion, que es lo mismo que ya se ve en pantalla. -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Marcos Guerrero" />
-    <meta property="og:locale" content="es_ES" />
+    <meta property="og:locale" content={t.localeOg} />
     <meta property="og:title" content={titulo} />
     {descripcion && <meta property="og:description" content={descripcion} />}
     <meta property="og:url" content={canonica} />
@@ -61,7 +81,7 @@ const canonica = new URL(Astro.url.pathname, Astro.site).href;
     />
   </head>
   <body>
-    <a class="salto" href="#contenido">Saltar al contenido</a>
+    <a class="salto" href="#contenido">{t.saltar}</a>
     <main id="contenido" tabindex="-1">
       <slot />
     </main>

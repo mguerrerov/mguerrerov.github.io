@@ -1,0 +1,58 @@
+---
+// Conmutador de idioma. Es un enlace a la misma pagina en el otro idioma, no
+// un control con estado: el idioma vive en la URL, asi que funciona sin JS y
+// se mantiene al entrar en una subpagina.
+import { idiomaDeRuta, rutaAlterna, textos } from '../i18n/textos';
+
+const actual = idiomaDeRuta(Astro.url.pathname);
+const destino = rutaAlterna(Astro.url.pathname);
+const t = textos(actual);
+---
+
+<nav class="idioma" aria-label={t.rotuloIdioma}>
+  {
+    actual === 'es' ? (
+      <>
+        <span aria-current="true">ES</span>
+        <span aria-hidden="true">/</span>
+        <a href={destino} hreflang="en" lang="en">EN</a>
+      </>
+    ) : (
+      <>
+        <a href={destino} hreflang="es" lang="es">ES</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="true">EN</span>
+      </>
+    )
+  }
+</nav>
+
+<style>
+  .idioma {
+    font-family: var(--mono);
+    font-size: var(--t--1);
+    letter-spacing: 0.06em;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .idioma a {
+    color: var(--acento);
+    text-decoration: none;
+  }
+
+  .idioma a:hover {
+    text-decoration: underline;
+  }
+
+  /* El idioma activo queda en apagado: el acento se reserva para lo que se
+     puede pulsar. */
+  .idioma span {
+    color: var(--apagado);
+  }
+
+  .idioma span[aria-hidden] {
+    color: var(--linea-fuerte);
+  }
+</style>
