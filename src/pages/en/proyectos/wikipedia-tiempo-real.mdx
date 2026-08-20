@@ -1,0 +1,213 @@
+---
+layout: ../../../layouts/Proyecto.astro
+titulo: Real-time Wikipedia pipeline
+resumen: Every Wikimedia edit, picked up from the public stream and answered in one-minute windows. The same code on a laptop and on AWS.
+repo: https://github.com/mguerrerov/wikipedia-realtime-pipeline
+---
+
+import Metricas from '../../../components/MetricasWikipedia.astro';
+import Diagrama from '../../../components/DiagramaWikipedia.astro';
+import AvisoDesarrollo from '../../../components/AvisoDesarrollo.astro';
+
+<AvisoDesarrollo
+  idioma="en"
+  texto="The pipeline is still under construction. The figures and the decisions described here reflect the current state and may change."
+/>
+
+## What problem it solves
+
+Wikimedia publishes every change on every wiki in an open stream, with no authentication,
+as soon as it happens. I wanted to use it to answer three questions: how much activity
+each wiki has minute by minute, what share of the changes is made by bots and what share
+by people, and which pages are being edited by more than one person **at once**.
+
+All three can be answered with a batch process running once a day, and all three would
+come out wrong. The second one proves it: measured on real data, the bot share swung
+between 27.8% and 35.2% across seven windows of a single run, and an earlier capture in
+another time slot had given 41.1%. A single number per day averages that variation until
+it disappears, and the answer with it.
+
+The third one cannot even be formulated in batch. "At once" is a property of the window,
+not of the day.
+
+The second goal was for the pipeline to run in two places without forking: on a laptop
+with Docker Compose and on AWS over Kinesis and EMR Serverless. The rule I set myself was
+that not a single `if entorno == "aws"` should appear inside the jobs. I nearly broke it
+without noticing, and that is further down.
+
+<Metricas idioma="en" />
+
+## Architecture
+
+<Diagrama idioma="en" />
+
+{/* BORRADOR: traduccion pendiente de reescritura por el autor. */}
+## Decisions and trade-offs
+
+### The event time is `meta.dt`, not `timestamp`
+
+Every event carries two timestamps. `timestamp` is when the change happened in MediaWiki,
+and it is the one that intuitively looks right for grouping into windows.
+
+I measured both on a ten-minute capture before writing anything. `timestamp` arrives out of
+order 62.35% of the time, with a maximum delay of **19.3 years**: they are `log` events
+from Commons, where that field holds the original date of the file, not that of the
+change. `meta.dt` — when the bus published it — is out of order 1.28% of the time, with a
+maximum of 0.99 s.
+
+With `timestamp` as the time axis, any reasonable watermark would have silently discarded
+part of the traffic, and the pipeline would have looked healthy. I use `meta.dt` and keep
+`timestamp` as a business column. The cost is that the windows measure when Wikimedia
+published the change and not when it happened: 1.7 s of difference at the median.
+
+### Bronze stores the JSON unparsed
+
+The entry layer writes the event as text, exactly as it arrived, plus the metadata of the
+queue envelope: partition, offset and timestamp.
+
+It is more expensive on disk than typing it from the start, and I do it anyway for two
+reasons. The first is that if Wikimedia changes the schema tomorrow, bronze keeps ingesting
+and the problem is solved in silver with the raw data still available. The second is that
+`(partition, offset)` uniquely identifies each message, and the offsets of a partition are
+consecutive: that makes it possible to prove that a restart lost nothing and duplicated
+nothing with an **exact** method, not an approximate one. Over two runs with a stop and a
+start in between, 25,911 rows, zero duplicates and zero gaps.
+
+### A 30-second watermark
+
+The source's disorder is below one second, so 30 s is two orders of magnitude of margin. I
+did not set it for the disorder: I set it for what can really delay an event, which is a
+producer reconnection or a Spark consumption backlog.
+
+I validated it by injecting deliberately delayed events with a synthetic generator. Up to
+30 s of delay, 100% survives; between 30 and 45 s, 93.6%; between 45 and 60 s, 10.1%;
+above 60 s none survives. The cut does not fall cleanly at second 30 because the watermark
+only advances between micro-batches, so the effective threshold is 30 s plus however long
+the batch in progress takes. That transition band is the correct behaviour, not a defect
+of the measurement.
+
+I also deduplicate within that window instead of remembering every identifier seen. The
+version without a watermark keeps every `meta.id` **forever**: the state grows without
+bound and the job ends up dying of memory. The price is that a duplicate more than 30 s
+away from its original is not detected, and I accept that because duplicates come from
+reconnections and reprocessing, which happen within seconds.
+
+### A sliding window only for the concurrent pages
+
+The first two questions use a fixed one-minute window. The third uses a five-minute
+sliding window advancing every minute, and it costs five times as much state.
+
+With a fixed window, two people editing the same page at 10:00:59 and at 10:01:01 fall
+into different windows and the coincidence does not show up. Which is exactly what the
+question is trying to detect.
+
+### One provisioned Kinesis shard, not on-demand
+
+On-demand mode scales by itself and charges a considerably higher hourly base fee. It pays
+off with irregular or large traffic, and here the throughput is measured and stable: 37.4
+ev/s on average, a peak of 114, around 53 KB/s. One shard takes 1 MB/s, twenty times what
+is needed.
+
+If the throughput shot up, shards would have to be added by hand. With this source that is
+not going to happen.
+
+{/* BORRADOR: traduccion pendiente de reescritura por el autor. */}
+## What broke and how I fixed it
+
+### It worked locally and would not have started on AWS
+
+This is the mistake I learned the most from, and it gave no symptom at all.
+
+I had written an abstraction over the event source so the job would not know whether it
+was reading from Kafka or from Kinesis. It gave Spark the format and the read options, and
+that seemed enough to me. It was not: Kafka returns columns `key, value, topic, partition,
+offset, timestamp` and Kinesis returns `data, streamName, partitionKey, sequenceNumber,
+approximateArrivalTimestamp`. And `bronce.py` was doing `F.col("offset")`.
+
+There was no `if entorno == "aws"` anywhere. The environment difference had crept in all
+the same, column by column, underneath the abstraction that existed to prevent it. Locally
+it worked perfectly.
+
+I found out by reading the EMR documentation before writing the Terraform, not by running
+anything on AWS. The abstraction moved on to normalising the whole envelope to a common
+schema, not just supplying the format. The cost is that `desplazamiento` had to become
+text, because the Kinesis sequence number has 56 digits and does not fit in a `BIGINT`, so
+the gap count needs a `CAST` and only applies to Kafka.
+
+The lesson I take away: an abstraction that has not been exercised against both
+implementations is not tested, only written.
+
+### A JAR that existed and still would not load
+
+The job died when creating the Spark session with `UnsupportedClassVersionError`, class
+file 61.0 against a runtime that recognised up to 55.0.
+
+I had verified that the Iceberg artifact existed for my Spark version and my Scala
+version. It does. What I had not looked at is the third axis: class file 61 is Java 17, and
+the short tags of the `apache/spark` image ship Java 11. That a JAR exists for your Spark
+and your Scala does not mean it works with your Java.
+
+The solution was the long tag of the same Spark version, which changes only the runtime. I
+ruled out dropping Iceberg to a version compiled for Java 11: it ties the project to an
+older dependency to fix a problem that is not in that dependency. As a side effect, it
+ended up aligned with Corretto 17, which is what EMR 7.x uses.
+
+### I pinned the versions looking at the laptop instead of looking at the target
+
+The first version matrix put Spark 3.5.9 and Iceberg 1.11.0, which was the most recent
+released. On checking the AWS documentation it turned out that EMR Serverless 7.13.0 ships
+Spark 3.5.6 and Iceberg 1.10.0.
+
+I dropped the local environment to those two. It is easier to drop a version on the laptop
+than to argue with AWS, and the goal of the project was for the jobs to be identical in
+both environments. Hadoop and Scala did not change, so the adjustment touched only two
+pieces.
+
+I took the chance to verify the seven JARs one by one with a request to Maven Central,
+instead of taking them for granted. Two of them were transitive dependencies of the Kafka
+connector that I had not declared: without them the job starts and fails on reading, which
+is the most expensive way to find out that a file is missing.
+
+### The checkpoints took up thirteen times more than the data
+
+I went to measure how much the pipeline took up on disk in order to size S3. The three
+data layers came to 13.7 MB. The checkpoint directory, **180 MB**.
+
+It is not a bug: Spark keeps by default the last hundred versions of the state of each
+query, and here there are five stateful queries, three of them with windowed aggregation.
+What interested me is the consequence, which goes against intuition: sizing storage by the
+data volume leaves out precisely the part that takes up the most. Lowering
+`minBatchesToRetain` before pushing this to AWS is still pending.
+
+### The synthetic generator contaminated the answer
+
+I had used the generator to provoke delays and duplicates the real source does not
+produce. On looking at the concurrent-pages table, it was full of invented titles: 400
+titles and 60 synthetic users generate far more coincidence than real traffic. And the
+generator produces 41% bots by construction, so it had also dirtied the human/bot share.
+
+The easy option was to filter the synthetic events by their comment inside the gold jobs. I
+ruled it out: that puts test logic into production code. The generator's trials moved to
+running over disposable volumes, and before any run meant for measuring, `docker compose
+down -v` and start clean with the real source only.
+
+Redoing the ingestion costs about ten minutes. That is cheap next to publishing a
+contaminated number. The earlier figures were marked as unusable rather than deleted.
+
+### A latency measurement that measured something else
+
+The first end-to-end measurement gave a p50 of 106.84 s and struck me as enormous.
+
+It was, because silver was catching up on the history accumulated in bronze while I was
+measuring: what I was timing was the catch-up speed, not the latency of the pipeline in
+motion. Repeated with the three layers started in a staggered way and with no accumulated
+backlog, over 18,556 rows, the p50 came out at 15.59 s and the p95 at 55.75 s.
+
+The p50 fits the theoretical floor: two chained ten-second triggers, one in bronze and one
+in silver. The tail out to 82 s is events arriving just after a micro-batch closes and
+waiting for the next one in each of the two layers. Lowering it is a matter of shortening
+the triggers, at the cost of more small files in Iceberg, and I have not touched it because
+15 s is more than enough for the questions this pipeline asks.
+
+I left the bad measurement documented next to the good one, marked as discarded. The
+mistake is more instructive than the number.
