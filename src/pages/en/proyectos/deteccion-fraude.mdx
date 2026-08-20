@@ -1,0 +1,107 @@
+---
+layout: ../../../layouts/Proyecto.astro
+titulo: Credit card fraud detection
+resumen: Two hundred eighty-four thousand transactions with 0.17% fraud, and three different ways of handling that imbalance put up against each other.
+repo: https://github.com/mguerrerov/credit-card-fraud-detection
+---
+
+import Metricas from '../../../components/MetricasFraude.astro';
+import Tabla from '../../../components/TablaFraude.astro';
+
+## What problem it solves
+
+In this dataset fraud is 0.17% of the transactions. That imbalance is the whole
+problem, and it breaks the first thing anyone looks at: a model that always answers
+"legitimate", without looking at anything, is right 99.83% of the time. Overall accuracy
+says nothing here, and using it as the criterion leads straight to a useless model.
+
+What has to be decided is what to do about that disproportion. There are three common
+answers and it is not obvious which one wins, so I tried all three against two models and
+compared the six results with metrics that do tell them apart.
+
+<Metricas idioma="en" />
+
+## Methodology
+
+Variables `V1` to `V28` come already transformed by PCA from the source, so only
+`Amount` and `Time` need scaling. I removed 1,081 duplicate rows and split 80/20
+stratified, so that the fraud proportion is the same in training and in test: without
+stratifying, an unlucky random split can leave almost all the fraud on one side.
+
+On that set, three strategies:
+
+- **SMOTE**, which synthesises new fraudulent transactions by interpolating between the
+  real ones, until the classes are balanced.
+- **Undersampling**, which discards legitimate transactions until they match. The
+  training set ends up at 756 rows, 378 per class.
+- **`class_weight='balanced'`**, which does not touch the data and merely penalises
+  errors on the minority class more heavily.
+
+And two models: logistic regression, as a baseline, and random forest, because a space
+transformed by PCA can have non-linear separations that a linear model cannot reach.
+
+## Results
+
+<Tabla idioma="en" />
+
+Random forest wins without touching the data: an F1 of 0.8364 and a precision of 98.57%.
+The interesting part is that the two resampling techniques, the ones usually cited as
+*the* solution to imbalance, come out behind simply reweighting the loss function.
+
+The bottom four rows show why recall alone is worth nothing. They all beat 86% recall and
+they all have a precision below 8%: they find the fraud because they flag almost
+everything as fraud. In production that means blocking thousands of legitimate purchases
+to catch a few fraudulent ones, which is an expensive way to fail.
+
+{/* BORRADOR: traduccion pendiente de reescritura por el autor. */}
+## Decisions and trade-offs
+
+### Comparing the three strategies instead of picking one
+
+I could have read that SMOTE is the recommended thing, applied it and presented the
+result. It would have given an F1 of 0.8324, which sounds fine until you see that doing
+nothing at all gives 0.8364 with less work and without inventing data.
+
+Every technique has its risk and none of them is theoretical: SMOTE introduces noise near
+the decision boundary, because the transactions it manufactures never existed;
+undersampling throws away real data and leaves the training set at 756 rows out of the
+283,726 available. Measuring them was the only way to know which one weighed more here.
+
+### Random forest and logistic regression, not just one
+
+Logistic regression is the mandatory baseline: if a linear model is enough, everything
+else is superfluous. It was not enough, and not by a small margin — it never got past an
+F1 of 0.11 in any configuration.
+
+That difference is a result in itself. It says that the separation between fraud and
+non-fraud in this space is not linear, and that the combinations of variables a tree finds
+are doing work no straight boundary can do.
+
+### F1 and AUC, never accuracy
+
+F1 combines precision and recall at the default threshold, and AUC measures the quality of
+the ordering across every threshold at once. Between them they cover the two questions
+that matter: whether the individual alerts are reliable, and whether the model knows how
+to rank by risk even if the cut-off is set wrong.
+
+{/* BORRADOR: traduccion pendiente de reescritura por el autor. */}
+## Limitations I have not solved
+
+### The train/test split leaks the future into the past
+
+It is the most serious methodological flaw in the project and it is not fixed. I split the
+transactions at random, so the training set contains operations later than those in the
+test set. A deployed model never has that: it only sees the past.
+
+The correct split would be by time, training on the first months and evaluating on the
+last ones. The metrics would very likely drop, because fraud patterns change and a random
+split makes it easy on the model. The figures on this page have to be read knowing this.
+
+### The threshold stayed at 0.5
+
+Every model classifies at the default threshold, which is rarely the optimal one. The
+precision-recall curve is computed and it shows where a reasonable cut-off would be
+depending on what each type of error costs, but I never got round to moving it.
+
+It is the pending improvement with the best effort-to-result ratio: it requires no
+retraining, only deciding which hurts more, a false alarm or a fraud that gets through.
