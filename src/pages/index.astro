@@ -5,6 +5,7 @@ import Base from '../layouts/Base.astro';
 import MiniFlujo from '../components/MiniFlujo.astro';
 import AvisoDesarrollo from '../components/AvisoDesarrollo.astro';
 import Idioma from '../components/Idioma.astro';
+import { textos } from '../i18n/textos';
 
 const cifras = [
   { valor: '1.311 M', etiqueta: 'eventos procesados' },
@@ -12,6 +13,7 @@ const cifras = [
   { valor: '4', etiqueta: 'proyectos publicados' },
   { valor: '0 €', etiqueta: 'coste de infraestructura' },
 ];
+const t = textos('es');
 ---
 
 <Base
@@ -101,7 +103,7 @@ const cifras = [
           <li>github actions</li>
         </ul>
 
-        <p class="mas"><a href="/proyectos/gh-archive/">Leer cómo está hecho →</a></p>
+        <p class="mas"><a href="/proyectos/gh-archive/">{t.leerMas}</a></p>
       </article>
 
       <article class="tarjeta proyecto">
@@ -156,7 +158,7 @@ const cifras = [
         </ul>
 
         <p class="mas">
-          <a href="/proyectos/wikipedia-tiempo-real/">Leer cómo está hecho →</a>
+          <a href="/proyectos/wikipedia-tiempo-real/">{t.leerMas}</a>
         </p>
       </article>
 
@@ -186,7 +188,7 @@ const cifras = [
           </ul>
 
           <p class="mas">
-            <a href="/proyectos/recomendador-candidatos/">Leer cómo está hecho →</a>
+            <a href="/proyectos/recomendador-candidatos/">{t.leerMas}</a>
           </p>
         </article>
 
@@ -213,7 +215,7 @@ const cifras = [
             <li>pandas</li>
           </ul>
 
-          <p class="mas"><a href="/proyectos/deteccion-fraude/">Leer cómo está hecho →</a></p>
+          <p class="mas"><a href="/proyectos/deteccion-fraude/">{t.leerMas}</a></p>
         </article>
       </div>
     </section>
