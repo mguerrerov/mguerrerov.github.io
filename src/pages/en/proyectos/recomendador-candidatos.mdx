@@ -1,0 +1,118 @@
+---
+layout: ../../../layouts/Proyecto.astro
+titulo: Candidate recommender
+resumen: It ranks CVs against a job offer by semantic closeness, then corrects that ranking with the requirements an embedding cannot read.
+repo: https://github.com/mguerrerov/recomendador-candidatos
+---
+
+import Metricas from '../../../components/MetricasRecomendador.astro';
+import Diagrama from '../../../components/DiagramaRecomendador.astro';
+
+## What problem it solves
+
+A keyword filter discards anyone who writes the same thing in different words. A CV that
+says "ETL pipeline design" does not show up in a search for "data engineering", even
+though it is exactly what is being looked for.
+
+Semantic closeness solves that: it turns the CV and the offer into vectors and measures
+the angle between them, so two texts about the same subject end up close even if they
+share no vocabulary. But it brings its own problem, which is that it ignores whatever is
+not semantic. A candidate with two years of experience can look extremely similar to an
+offer asking for five.
+
+That is why the system makes two passes. First it ranks by pure similarity. Then it
+deducts positions for the hard requirements it knows how to read: years of experience,
+degree and English level. The original score is left untouched and stored alongside the
+adjusted one, so it is possible to see what the filter moved and why.
+
+Everything runs locally, with no calls to paid APIs.
+
+<Metricas idioma="en" />
+
+## Architecture
+
+<Diagrama idioma="en" />
+
+{/* BORRADOR: traduccion pendiente de reescritura por el autor. */}
+## Decisions and trade-offs
+
+### A multilingual model, even though it is worse in English
+
+`all-MiniLM-L6-v2` scores better in pure English, and it was the default option. Real CVs
+mix Spanish and English on the same page, sometimes on the same line, and a monolingual
+model does not put both languages in the same space: "aprendizaje automático" and
+"machine learning" would end up far apart.
+
+I used `paraphrase-multilingual-MiniLM-L12-v2`, which aligns the two languages at the cost
+of some accuracy in each one separately. For this case the bilingualism weighs more than
+the ceiling.
+
+### MySQL with a JSON column, not a vector database
+
+With 18 candidates, a vector index speeds up nothing: the exhaustive search goes through
+18 vectors of 384 dimensions and finishes before an approximate index would have been
+built.
+
+I store the serialised vector in a `JSON` column of MySQL 8, which has no native vector
+type, and compute the similarity in Python. It is a decision about scale, not about
+ignorance: past hundreds of thousands of CVs the right answer would be pgvector or Qdrant,
+and this whole layer would have to be redone.
+
+### The cosine written by hand
+
+`sklearn.metrics.pairwise.cosine_similarity` solves it in one line. I wrote it with numpy
+so the formula is in plain sight and can be audited when a result looks odd, which in a
+ranking system happens often. It is ten lines and depends on nothing.
+
+### Three states in the filter, not two
+
+A requirement can be met, not met, or **unknown**. The extraction is done with regular
+expressions and it fails: out of the 18 candidates, it gets the years of experience for 17
+and the degree for 16.
+
+If the filter were binary, an extractor failure would penalise someone for a problem in
+the program, not theirs. With the third state, what is unknown does not deduct. And
+whoever does not meet a requirement is not excluded but pushed downwards with the reason
+written beside it: a visible error can be corrected, one that erases a candidate from the
+list cannot.
+
+{/* BORRADOR: traduccion pendiente de reescritura por el autor. */}
+## What broke and how I fixed it
+
+### Long CVs scored high against any offer
+
+The model only looks at 128 tokens at a time, so the CV is chopped up and the vectors of
+the fragments are averaged. The average of a long, varied CV falls near the centre of the
+semantic space, and from the centre everything is at middling distance. A generalist
+profile came out second or third in offers where it was not the best candidate.
+
+I tried the obvious alternative: scoring by the best-matching fragment instead of
+averaging. I measured both with two negative controls, CVs that should not appear near the
+top in any offer, and compared their average position over 18 candidates. The plain
+average left them at 16.62; scoring by the best fragment raised them to 13.88, that is,
+higher than they should be.
+
+That measurement comes from an earlier version of the system, with four shorter offers and
+no requirement filter, so its numbers do not compare with the rest of this page. What
+settled the question was the difference between the two options, not their absolute value.
+
+The alternative was worse, so I kept the average and left the limitation documented
+instead of hiding it. It is still there.
+
+### The middle of the ranking means nothing
+
+Between positions 8 and 15 the cosine differences drop below 0.02. At that distance the
+order is noise: reordering those candidates answers to nothing measurable.
+
+I have not fixed it, because I do not think it can be fixed with this approach. What I did
+was stop treating the ranking as a list ordered top to bottom and consider it reliable
+only at the extremes.
+
+### A scanned CV came in as an empty candidate
+
+A PDF that is an image yields no text, and the pipeline indexed it all the same: a
+candidate with a vector built on an empty string, taking up a place in the ranking.
+
+I did not add OCR, which was a lot of work for an infrequent case. The extractor detects
+that it has not pulled out any useful text and rejects the file explicitly. A candidate
+who is missing and says so is preferable to one who is there and is a lie.
