@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>El portfolio se ha mudado</title>
+  <script>
+    // Pages sirve este fichero para cualquier ruta que no exista, que aqui es
+    // cualquier ruta salvo la raiz. Se conserva el camino pedido para que un
+    // enlace antiguo a /proyectos/gh-archive/ caiga en su pagina, no en la
+    // portada. Sin JS queda el enlace de abajo.
+    location.replace('https://mguerrerov.netlify.app' + location.pathname + location.search + location.hash);
+  </script>
+  <style>
+    body {
+      background: #FAF9F5;
+      color: #1C1B19;
+      font: 1rem/1.6 system-ui, sans-serif;
+      margin: 0;
+      display: grid;
+      place-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+      text-align: center;
+    }
+    a { color: #A64B2A; }
+  </style>
+</head>
+<body>
+  <p>El portfolio está ahora en
+    <a href="https://mguerrerov.netlify.app/">mguerrerov.netlify.app</a>.</p>
+</body>
+</html>

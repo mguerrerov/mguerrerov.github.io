@@ -1,8 +1,13 @@
 name: Verificar el build
 
-# El despliegue lo hace Netlify desde netlify.toml. Este workflow no publica
-# nada: solo comprueba que el build sale y que no arrastra datos personales.
-# Netlify no ejecuta estas verificaciones, asi que tienen que vivir aqui.
+# El sitio lo despliega Netlify desde netlify.toml. Este workflow hace dos
+# cosas que Netlify no hace:
+#
+#   1. Comprobar que el build sale y que no arrastra datos personales.
+#   2. Publicar en GitHub Pages una redireccion hacia Netlify. GitHub no deja
+#      desactivar Pages en un repositorio de usuario (devuelve 422), asi que la
+#      alternativa a dejar dos copias del sitio compitiendo es servir solo el
+#      puente para los enlaces antiguos.
 
 on:
   push:
@@ -66,3 +71,28 @@ jobs:
             exit 1
           fi
           echo "OK: sin datos personales en dist/."
+
+  redirigir:
+    # Solo desde main: una rama o un pull request no deben tocar lo publicado.
+    if: github.ref == 'refs/heads/main'
+    needs: construir
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/configure-pages@v5
+
+      # Se sube redireccion/, no dist/: en Pages ya no vive el sitio.
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: redireccion
+
+      - id: despliegue
+        uses: actions/deploy-pages@v4
