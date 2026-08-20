@@ -2,6 +2,8 @@
 // Layout de las paginas de proyecto en MDX. Misma cabecera blanca a ancho
 // completo que la home, y despues la prosa en columna de lectura.
 import Base from './Base.astro';
+import Idioma from '../components/Idioma.astro';
+import { idiomaDeRuta, textos } from '../i18n/textos';
 
 interface Props {
   frontmatter: {
@@ -12,15 +14,21 @@ interface Props {
 }
 
 const { titulo, resumen, repo } = Astro.props.frontmatter;
+
+const idioma = idiomaDeRuta(Astro.url.pathname);
+const t = textos(idioma);
+// El inicio de cada idioma es su propia raiz.
+const inicio = idioma === 'es' ? '/' : '/en/';
 ---
 
 <Base titulo={`${titulo} — Marcos Guerrero`} descripcion={resumen}>
   <header class="cabecera">
     <div class="envoltorio">
-      <nav class="migas" aria-label="Miga de pan">
-        <a href="/">Marcos Guerrero</a>
+      <Idioma />
+      <nav class="migas" aria-label={t.migaPan}>
+        <a href={inicio}>Marcos Guerrero</a>
         <span aria-hidden="true">/</span>
-        <span class="apagado">Proyecto</span>
+        <span class="apagado">{t.proyecto}</span>
       </nav>
       <h1>{titulo}</h1>
       <p class="entrada lectura">{resumen}</p>
@@ -34,9 +42,9 @@ const { titulo, resumen, repo } = Astro.props.frontmatter;
 
     <footer class="pie">
       <p>
-        <a href={repo}>Ver el código en GitHub →</a>
+        <a href={repo}>{t.verRepo}</a>
       </p>
-      <p><a href="/">← Volver al inicio</a></p>
+      <p><a href={inicio}>{t.volver}</a></p>
     </footer>
   </div>
 </Base>
