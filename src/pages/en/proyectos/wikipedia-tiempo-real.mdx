@@ -68,7 +68,7 @@ queue envelope: partition, offset and timestamp.
 It is more expensive on disk than typing it from the start, and I do it anyway for two
 reasons. The first is that if Wikimedia changes the schema tomorrow, bronze keeps ingesting
 and the problem is solved in silver with the raw data still available. The second is that
-`(partition, offset)` uniquely identifies each message, and the offsets of a partition are
+`(particion, desplazamiento)` uniquely identifies each message, and the offsets of a partition are
 consecutive: that makes it possible to prove that a restart lost nothing and duplicated
 nothing with an **exact** method, not an approximate one. Over two runs with a stop and a
 start in between, 25,911 rows, zero duplicates and zero gaps.
