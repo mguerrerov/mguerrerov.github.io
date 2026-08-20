@@ -15,6 +15,8 @@ const TEXTOS = {
     rotuloIdioma: 'Idioma',
     localeOg: 'es_ES',
     enDesarrollo: 'En desarrollo',
+    avisoGenerico:
+      'El pipeline sigue en construcción. Las cifras y las decisiones que se describen aquí son las del estado actual y pueden cambiar.',
   },
   en: {
     saltar: 'Skip to content',
@@ -26,6 +28,8 @@ const TEXTOS = {
     rotuloIdioma: 'Language',
     localeOg: 'en_US',
     enDesarrollo: 'Work in progress',
+    avisoGenerico:
+      'The pipeline is still under construction. The figures and the decisions described here reflect the current state and may change.',
   },
 } as const;
 

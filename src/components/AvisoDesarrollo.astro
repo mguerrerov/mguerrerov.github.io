@@ -8,17 +8,17 @@ interface Props {
   texto?: string;
 }
 
-const {
-  idioma = 'es',
-  texto = 'El pipeline sigue en construcción. Las cifras y las decisiones que se describen aquí son las del estado actual y pueden cambiar.',
-} = Astro.props;
+const { idioma = 'es', texto } = Astro.props;
 
 const t = textos(idioma);
+// Por defecto se usa el aviso generico del diccionario, en el idioma de la
+// pagina. Si una pagina necesita un texto distinto, el prop lo sobrescribe.
+const cuerpo = texto ?? t.avisoGenerico;
 ---
 
 <aside class="aviso" role="note">
   <p class="etiqueta">{t.enDesarrollo}</p>
-  <p>{texto}</p>
+  <p>{cuerpo}</p>
 </aside>
 
 <style>
