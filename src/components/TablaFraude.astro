@@ -2,29 +2,63 @@
 // Resultados de las seis combinaciones, ordenados por F1. Tabla real en vez de
 // divs con roles ARIA: los lectores de pantalla anuncian filas y columnas sin
 // depender de que los roles esten bien puestos.
-const filas = [
-  { modelo: 'RF · class_weight', f1: '0,8364', prec: '0,9857', rec: '0,7263', auc: '0,9141' },
-  { modelo: 'RF · SMOTE', f1: '0,8324', prec: '0,9231', rec: '0,7579', auc: '0,9436' },
-  { modelo: 'RF · submuestreo', f1: '0,1415', prec: '0,0771', rec: '0,8632', auc: '0,9737' },
-  { modelo: 'LR · class_weight', f1: '0,1055', prec: '0,0561', rec: '0,8737', auc: '0,9658' },
-  { modelo: 'LR · SMOTE', f1: '0,1002', prec: '0,0531', rec: '0,8737', auc: '0,9619' },
-  { modelo: 'LR · submuestreo', f1: '0,0981', prec: '0,0520', rec: '0,8737', auc: '0,9559' },
-];
+//
+// Los valores cambian de separador segun el idioma: en ingles la coma decimal
+// se lee como separador de millares y cambiaria la cifra.
+import type { Idioma } from '../i18n/textos';
+
+interface Props {
+  idioma?: Idioma;
+}
+
+const { idioma = 'es' } = Astro.props;
+
+const FILAS = {
+  es: [
+    { modelo: 'RF · class_weight', f1: '0,8364', prec: '0,9857', rec: '0,7263', auc: '0,9141' },
+    { modelo: 'RF · SMOTE', f1: '0,8324', prec: '0,9231', rec: '0,7579', auc: '0,9436' },
+    { modelo: 'RF · submuestreo', f1: '0,1415', prec: '0,0771', rec: '0,8632', auc: '0,9737' },
+    { modelo: 'LR · class_weight', f1: '0,1055', prec: '0,0561', rec: '0,8737', auc: '0,9658' },
+    { modelo: 'LR · SMOTE', f1: '0,1002', prec: '0,0531', rec: '0,8737', auc: '0,9619' },
+    { modelo: 'LR · submuestreo', f1: '0,0981', prec: '0,0520', rec: '0,8737', auc: '0,9559' },
+  ],
+  en: [
+    { modelo: 'RF · class_weight', f1: '0.8364', prec: '0.9857', rec: '0.7263', auc: '0.9141' },
+    { modelo: 'RF · SMOTE', f1: '0.8324', prec: '0.9231', rec: '0.7579', auc: '0.9436' },
+    { modelo: 'RF · undersampling', f1: '0.1415', prec: '0.0771', rec: '0.8632', auc: '0.9737' },
+    { modelo: 'LR · class_weight', f1: '0.1055', prec: '0.0561', rec: '0.8737', auc: '0.9658' },
+    { modelo: 'LR · SMOTE', f1: '0.1002', prec: '0.0531', rec: '0.8737', auc: '0.9619' },
+    { modelo: 'LR · undersampling', f1: '0.0981', prec: '0.0520', rec: '0.8737', auc: '0.9559' },
+  ],
+} as const;
+
+const CABECERAS = {
+  es: { modelo: 'modelo', f1: 'f1', prec: 'precisión', rec: 'recall', auc: 'auc' },
+  en: { modelo: 'model', f1: 'f1', prec: 'precision', rec: 'recall', auc: 'auc' },
+} as const;
+
+const LEYENDA = {
+  es: 'Resultados de las seis combinaciones de modelo y estrategia, ordenados por F1',
+  en: 'Results of the six model and strategy combinations, ordered by F1',
+} as const;
+
+const filas = FILAS[idioma];
+const cabeceras = CABECERAS[idioma];
 ---
 
 <figure>
   <div class="marco">
     <table>
       <caption class="oculto">
-        Resultados de las seis combinaciones de modelo y estrategia, ordenados por F1
+        {LEYENDA[idioma]}
       </caption>
       <thead>
         <tr>
-          <th scope="col">modelo</th>
-          <th scope="col">f1</th>
-          <th scope="col">precisión</th>
-          <th scope="col">recall</th>
-          <th scope="col">auc</th>
+          <th scope="col">{cabeceras.modelo}</th>
+          <th scope="col">{cabeceras.f1}</th>
+          <th scope="col">{cabeceras.prec}</th>
+          <th scope="col">{cabeceras.rec}</th>
+          <th scope="col">{cabeceras.auc}</th>
         </tr>
       </thead>
       <tbody>
@@ -43,8 +77,9 @@ const filas = [
     </table>
   </div>
   <figcaption>
-    Las tres últimas filas tienen mejor recall que las dos primeras y aun así no sirven:
-    encuentran el fraude a cambio de señalar como fraude casi todo lo demás.
+    {idioma === 'es'
+      ? 'Las tres últimas filas tienen mejor recall que las dos primeras y aun así no sirven: encuentran el fraude a cambio de señalar como fraude casi todo lo demás.'
+      : 'The last three rows have better recall than the first two and still are not usable: they catch the fraud at the cost of flagging almost everything else as fraud too.'}
   </figcaption>
 </figure>
 

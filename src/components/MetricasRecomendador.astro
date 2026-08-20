@@ -1,26 +1,42 @@
 ---
 // Cifras tomadas del README.md del repositorio del proyecto.
+import type { Idioma } from '../i18n/textos';
+
+interface Props {
+  idioma?: Idioma;
+}
+
+const { idioma = 'es' } = Astro.props;
+
+const FILAS = {
+  es: [
+    ['dimensiones por vector', '384'],
+    ['candidatos indexados', '18'],
+    ['ofertas de prueba', '6'],
+    ['pares evaluados', '108'],
+    ['ventana del modelo', '128 tokens'],
+    ['tests', '61, en 6 s'],
+    ['coste de inferencia', '0 €'],
+  ],
+  en: [
+    ['dimensions per vector', '384'],
+    ['indexed candidates', '18'],
+    ['test job postings', '6'],
+    ['evaluated pairs', '108'],
+    ['model window', '128 tokens'],
+    ['tests', '61, in 6 s'],
+    ['inference cost', '€0'],
+  ],
+} as const;
 ---
 
 <dl class="metricas-lista">
-  <dt>dimensiones por vector</dt>
-  <dd>384</dd>
-
-  <dt>candidatos indexados</dt>
-  <dd>18</dd>
-
-  <dt>ofertas de prueba</dt>
-  <dd>6</dd>
-
-  <dt>pares evaluados</dt>
-  <dd>108</dd>
-
-  <dt>ventana del modelo</dt>
-  <dd>128 tokens</dd>
-
-  <dt>tests</dt>
-  <dd>61, en 6 s</dd>
-
-  <dt>coste de inferencia</dt>
-  <dd>0 €</dd>
+  {
+    FILAS[idioma].map(([etiqueta, valor]) => (
+      <>
+        <dt>{etiqueta}</dt>
+        <dd>{valor}</dd>
+      </>
+    ))
+  }
 </dl>

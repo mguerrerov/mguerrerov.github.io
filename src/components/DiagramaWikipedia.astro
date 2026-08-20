@@ -3,6 +3,74 @@
 // flujo es lineal: lo que cambia entre local y AWS son las dos piezas de los
 // extremos, no las capas de en medio. Por eso la cola y el almacen llevan las
 // dos etiquetas y las capas no llevan ninguna.
+import type { Idioma } from '../i18n/textos';
+
+interface Props {
+  idioma?: Idioma;
+}
+
+const { idioma = 'es' } = Astro.props;
+
+const L = {
+  es: {
+    titulo: 'Flujo del pipeline en tiempo real de Wikimedia',
+    descripcion:
+      'El stream SSE de Wikimedia alimenta un productor que publica en Kafka en local y en ' +
+      'Kinesis en AWS. De ahi los datos pasan por tres capas: Bronze guarda el evento como ' +
+      'texto sin parsear junto al sobre de la cola, Silver lo tipa y lo deduplica bajo un ' +
+      'watermark de treinta segundos, y Gold agrega las tres preguntas por ventana. El ' +
+      'resultado se escribe en Iceberg, sobre MinIO en local y sobre S3 con Glue en AWS.',
+    origen: 'origen',
+    fuenteTitulo: 'stream sse de wikimedia',
+    fuenteSub: '37,4 ev/s sostenidos · pico de 114 · sin autenticacion',
+    colaTitulo: 'cola · clave de particion wiki|title',
+    colaSub: 'kafka (redpanda) en local  ·  kinesis, 1 shard, en aws',
+    bronceTitulo: 'bronce · el evento como texto, sin parsear',
+    bronceSub: 'guarda el sobre: particion, desplazamiento y ts_cola',
+    plataTitulo: 'plata · esquema explicito, tipado y deduplicado',
+    plataSub: 'watermark de 30 s sobre meta.dt · clave meta.id',
+    oroTitulo: 'oro · las tres preguntas, agregadas por ventana',
+    oroSub1: 'p1 actividad por wiki y espacio de nombres · fija, 1 min',
+    oroSub2: 'p2 humano frente a bot · fija, 1 min',
+    oroSub3: 'p3 paginas concurrentes · deslizante, 5 min, paso de 1',
+    almacen: 'iceberg · minio en local  ·  s3 y glue en aws',
+    pie1: 'las tres capas son el mismo codigo en los dos entornos',
+    pie2: 'fuente_eventos = kafka | kinesis, y ningun if de entorno en los jobs',
+    figcaption:
+      'Solo cambian las piezas de los extremos. Las tres capas de en medio no saben si están ' +
+      'leyendo de Kafka o de Kinesis, ni escribiendo en MinIO o en S3.',
+  },
+  en: {
+    titulo: 'Wikimedia real-time pipeline flow',
+    descripcion:
+      'The Wikimedia SSE stream feeds a producer that publishes to Kafka locally and to ' +
+      'Kinesis on AWS. From there the data flows through three layers: Bronze stores the ' +
+      'event as unparsed text alongside the queue envelope, Silver types it and deduplicates ' +
+      'it under a thirty-second watermark, and Gold aggregates the three questions by window. ' +
+      'The result is written to Iceberg, on MinIO locally and on S3 with Glue on AWS.',
+    origen: 'source',
+    fuenteTitulo: 'wikimedia sse stream',
+    fuenteSub: '37.4 ev/s sustained · peak of 114 · no authentication',
+    colaTitulo: 'queue · partition key wiki|title',
+    colaSub: 'kafka (redpanda) locally  ·  kinesis, 1 shard, on aws',
+    bronceTitulo: 'bronze · the event as text, unparsed',
+    bronceSub: 'stores the envelope: partition, offset and ts_cola',
+    plataTitulo: 'silver · explicit schema, typed and deduplicated',
+    plataSub: '30 s watermark on meta.dt · key meta.id',
+    oroTitulo: 'gold · the three questions, aggregated by window',
+    oroSub1: 'q1 activity by wiki and namespace · fixed, 1 min',
+    oroSub2: 'q2 human vs bot · fixed, 1 min',
+    oroSub3: 'q3 concurrent pages · sliding, 5 min, step of 1',
+    almacen: 'iceberg · minio locally  ·  s3 and glue on aws',
+    pie1: 'the three layers are the same code in both environments',
+    pie2: 'fuente_eventos = kafka | kinesis, and no environment if in the jobs',
+    figcaption:
+      'Only the pieces at the ends change. The three layers in the middle do not know whether ' +
+      'they are reading from Kafka or from Kinesis, or writing to MinIO or to S3.',
+  },
+} as const;
+
+const t = L[idioma];
 ---
 
 <figure>
@@ -13,13 +81,9 @@
     style="max-width:100%;height:auto"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <title id="tl-wiki">Flujo del pipeline en tiempo real de Wikimedia</title>
+    <title id="tl-wiki">{t.titulo}</title>
     <desc id="ds-wiki">
-      El stream SSE de Wikimedia alimenta un productor que publica en Kafka en local y en
-      Kinesis en AWS. De ahi los datos pasan por tres capas: Bronze guarda el evento como
-      texto sin parsear junto al sobre de la cola, Silver lo tipa y lo deduplica bajo un
-      watermark de treinta segundos, y Gold agrega las tres preguntas por ventana. El
-      resultado se escribe en Iceberg, sobre MinIO en local y sobre S3 con Glue en AWS.
+      {t.descripcion}
     </desc>
 
     <defs>
@@ -37,51 +101,50 @@
       </marker>
     </defs>
 
-    <text x="30" y="22" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--apagado)">origen</text>
+    <text x="30" y="22" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--apagado)">{t.origen}</text>
 
     <rect x="30" y="36" width="520" height="46" fill="none" stroke="var(--apagado)" stroke-width="1" rx="4"></rect>
-    <text x="46" y="56" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">stream sse de wikimedia</text>
-    <text x="46" y="72" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">37,4 ev/s sostenidos · pico de 114 · sin autenticacion</text>
+    <text x="46" y="56" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">{t.fuenteTitulo}</text>
+    <text x="46" y="72" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">{t.fuenteSub}</text>
 
     <line x1="290" y1="84" x2="290" y2="102" stroke="var(--apagado)" stroke-width="1.5" marker-end="url(#pw)"></line>
 
     <rect x="30" y="104" width="520" height="52" fill="none" stroke="var(--apagado)" stroke-width="1" rx="4"></rect>
-    <text x="46" y="125" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">cola · clave de particion wiki|title</text>
-    <text x="46" y="143" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">kafka (redpanda) en local  ·  kinesis, 1 shard, en aws</text>
+    <text x="46" y="125" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">{t.colaTitulo}</text>
+    <text x="46" y="143" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">{t.colaSub}</text>
 
     <line x1="290" y1="158" x2="290" y2="176" stroke="var(--apagado)" stroke-width="1.5" marker-end="url(#pw)"></line>
 
     <rect x="30" y="178" width="520" height="52" fill="none" stroke="var(--texto)" stroke-width="1" rx="4"></rect>
-    <text x="46" y="199" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">bronce · el evento como texto, sin parsear</text>
-    <text x="46" y="217" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">guarda el sobre: particion, desplazamiento y ts_cola</text>
+    <text x="46" y="199" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">{t.bronceTitulo}</text>
+    <text x="46" y="217" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">{t.bronceSub}</text>
 
     <line x1="290" y1="232" x2="290" y2="250" stroke="var(--apagado)" stroke-width="1.5" marker-end="url(#pw)"></line>
 
     <rect x="30" y="252" width="520" height="52" fill="none" stroke="var(--texto)" stroke-width="1" rx="4"></rect>
     <line x1="22" y1="256" x2="22" y2="300" stroke="var(--acento)" stroke-width="1.5"></line>
-    <text x="46" y="273" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">plata · esquema explicito, tipado y deduplicado</text>
-    <text x="46" y="291" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">watermark de 30 s sobre meta.dt · clave meta.id</text>
+    <text x="46" y="273" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">{t.plataTitulo}</text>
+    <text x="46" y="291" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">{t.plataSub}</text>
 
     <line x1="290" y1="306" x2="290" y2="324" stroke="var(--apagado)" stroke-width="1.5" marker-end="url(#pw)"></line>
 
     <rect x="30" y="326" width="520" height="88" fill="none" stroke="var(--texto)" stroke-width="1" rx="4"></rect>
-    <text x="46" y="347" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">oro · las tres preguntas, agregadas por ventana</text>
-    <text x="46" y="368" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">p1 actividad por wiki y espacio de nombres · fija, 1 min</text>
-    <text x="46" y="386" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">p2 humano frente a bot · fija, 1 min</text>
-    <text x="46" y="404" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">p3 paginas concurrentes · deslizante, 5 min, paso de 1</text>
+    <text x="46" y="347" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">{t.oroTitulo}</text>
+    <text x="46" y="368" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">{t.oroSub1}</text>
+    <text x="46" y="386" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">{t.oroSub2}</text>
+    <text x="46" y="404" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">{t.oroSub3}</text>
 
     <line x1="290" y1="416" x2="290" y2="434" stroke="var(--apagado)" stroke-width="1.5" marker-end="url(#pw)"></line>
 
     <rect x="30" y="436" width="520" height="34" fill="none" stroke="var(--apagado)" stroke-width="1" rx="4"></rect>
-    <text x="46" y="458" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">iceberg · minio en local  ·  s3 y glue en aws</text>
+    <text x="46" y="458" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">{t.almacen}</text>
 
     <line x1="30" y1="494" x2="550" y2="494" stroke="var(--linea)" stroke-width="1"></line>
-    <text x="30" y="514" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">las tres capas son el mismo codigo en los dos entornos</text>
-    <text x="30" y="530" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">fuente_eventos = kafka | kinesis, y ningun if de entorno en los jobs</text>
+    <text x="30" y="514" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">{t.pie1}</text>
+    <text x="30" y="530" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">{t.pie2}</text>
   </svg>
 
   <figcaption>
-    Solo cambian las piezas de los extremos. Las tres capas de en medio no saben si están
-    leyendo de Kafka o de Kinesis, ni escribiendo en MinIO o en S3.
+    {t.figcaption}
   </figcaption>
 </figure>

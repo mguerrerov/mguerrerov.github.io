@@ -1,26 +1,45 @@
 ---
 // Cifras tomadas del README_ES.md y del notebook del repositorio.
+//
+// Los valores cambian de separador segun el idioma: en ingles la coma decimal
+// se lee como separador de millares y cambiaria la cifra.
+import type { Idioma } from '../i18n/textos';
+
+interface Props {
+  idioma?: Idioma;
+}
+
+const { idioma = 'es' } = Astro.props;
+
+const FILAS = {
+  es: [
+    ['transacciones', '284.807'],
+    ['tras quitar duplicados', '283.726'],
+    ['fraude', '0,17 %'],
+    ['combinaciones probadas', '6'],
+    ['mejor F1', '0,8364'],
+    ['precisión de ese modelo', '98,57 %'],
+    ['recall de ese modelo', '72,63 %'],
+  ],
+  en: [
+    ['transactions', '284,807'],
+    ['after removing duplicates', '283,726'],
+    ['fraud', '0.17 %'],
+    ['combinations tried', '6'],
+    ['best F1', '0.8364'],
+    ['precision of that model', '98.57 %'],
+    ['recall of that model', '72.63 %'],
+  ],
+} as const;
 ---
 
 <dl class="metricas-lista">
-  <dt>transacciones</dt>
-  <dd>284.807</dd>
-
-  <dt>tras quitar duplicados</dt>
-  <dd>283.726</dd>
-
-  <dt>fraude</dt>
-  <dd>0,17 %</dd>
-
-  <dt>combinaciones probadas</dt>
-  <dd>6</dd>
-
-  <dt>mejor F1</dt>
-  <dd>0,8364</dd>
-
-  <dt>precisión de ese modelo</dt>
-  <dd>98,57 %</dd>
-
-  <dt>recall de ese modelo</dt>
-  <dd>72,63 %</dd>
+  {
+    FILAS[idioma].map(([etiqueta, valor]) => (
+      <>
+        <dt>{etiqueta}</dt>
+        <dd>{valor}</dd>
+      </>
+    ))
+  }
 </dl>

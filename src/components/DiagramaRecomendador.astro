@@ -1,6 +1,65 @@
 ---
 // Diagrama del recomendador. Dos entradas que convergen en el mismo modelo de
 // embeddings, y tres interfaces que consumen la misma API.
+import type { Idioma } from '../i18n/textos';
+
+interface Props {
+  idioma?: Idioma;
+}
+
+const { idioma = 'es' } = Astro.props;
+
+const L = {
+  es: {
+    titulo: 'Flujo del recomendador de candidatos',
+    descripcion:
+      'El CV en PDF y el texto de la oferta pasan por el mismo modelo de embeddings y se ' +
+      'guardan en MySQL. El emparejamiento calcula la similitud coseno y aplica despues un ' +
+      'filtro de requisitos duros. Tres interfaces (terminal, n8n y Streamlit) consumen la ' +
+      'misma API de FastAPI.',
+    indexado: 'indexado',
+    cvTitulo: 'cv.pdf',
+    cvSub: 'pdfplumber',
+    ofertaTitulo: 'texto de la oferta',
+    ofertaSub: 'entrada directa',
+    embTitulo: 'embeddings · minilm multilingue · 384 dimensiones',
+    embSub: 'troceado por ventana de 128 tokens, normalizado y promediado',
+    mysql: 'mysql · vector serializado en columna json',
+    rankingTitulo: 'ranking · coseno con numpy, luego filtro de requisitos',
+    rankingSub: 'la puntuacion original se conserva junto a la ajustada',
+    pie1: 'las tres interfaces llaman a la misma api y no repiten logica:',
+    pie2: 'terminal · n8n (webhooks) · streamlit  ->  fastapi',
+    pie3: 'borrando la api y n8n, el pipeline sigue corriendo por terminal',
+    figcaption:
+      'El CV y la oferta pasan por el mismo modelo: es lo que permite compararlos en un ' +
+      'espacio común aunque no compartan ni una palabra.',
+  },
+  en: {
+    titulo: 'Candidate recommender flow',
+    descripcion:
+      'The CV in PDF and the job posting text pass through the same embeddings model and are ' +
+      'stored in MySQL. Matching computes cosine similarity and then applies a hard-requirements ' +
+      'filter. Three interfaces (terminal, n8n and Streamlit) consume the same FastAPI API.',
+    indexado: 'indexing',
+    cvTitulo: 'cv.pdf',
+    cvSub: 'pdfplumber',
+    ofertaTitulo: 'job posting text',
+    ofertaSub: 'direct input',
+    embTitulo: 'embeddings · multilingual minilm · 384 dimensions',
+    embSub: 'chunked in a 128-token window, normalized and averaged',
+    mysql: 'mysql · vector serialized in a json column',
+    rankingTitulo: 'ranking · cosine with numpy, then requirements filter',
+    rankingSub: 'the original score is kept alongside the adjusted one',
+    pie1: 'the three interfaces call the same api and do not repeat logic:',
+    pie2: 'terminal · n8n (webhooks) · streamlit  ->  fastapi',
+    pie3: 'removing the api and n8n, the pipeline still runs from the terminal',
+    figcaption:
+      'The CV and the job posting pass through the same model: that is what allows comparing ' +
+      'them in a shared space even when they do not share a single word.',
+  },
+} as const;
+
+const t = L[idioma];
 ---
 
 <figure>
@@ -11,12 +70,9 @@
     style="max-width:100%;height:auto"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <title id="tl-rec">Flujo del recomendador de candidatos</title>
+    <title id="tl-rec">{t.titulo}</title>
     <desc id="ds-rec">
-      El CV en PDF y el texto de la oferta pasan por el mismo modelo de embeddings y se
-      guardan en MySQL. El emparejamiento calcula la similitud coseno y aplica despues un
-      filtro de requisitos duros. Tres interfaces (terminal, n8n y Streamlit) consumen la
-      misma API de FastAPI.
+      {t.descripcion}
     </desc>
 
     <defs>
@@ -34,15 +90,15 @@
       </marker>
     </defs>
 
-    <text x="30" y="22" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--apagado)">indexado</text>
+    <text x="30" y="22" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--apagado)">{t.indexado}</text>
 
     <rect x="30" y="36" width="240" height="46" fill="none" stroke="var(--apagado)" stroke-width="1" rx="4"></rect>
-    <text x="46" y="56" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">cv.pdf</text>
-    <text x="46" y="72" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">pdfplumber</text>
+    <text x="46" y="56" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">{t.cvTitulo}</text>
+    <text x="46" y="72" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">{t.cvSub}</text>
 
     <rect x="310" y="36" width="240" height="46" fill="none" stroke="var(--apagado)" stroke-width="1" rx="4"></rect>
-    <text x="326" y="56" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">texto de la oferta</text>
-    <text x="326" y="72" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">entrada directa</text>
+    <text x="326" y="56" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">{t.ofertaTitulo}</text>
+    <text x="326" y="72" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">{t.ofertaSub}</text>
 
     <line x1="150" y1="84" x2="150" y2="102" stroke="var(--apagado)" stroke-width="1.5"></line>
     <line x1="430" y1="84" x2="430" y2="102" stroke="var(--apagado)" stroke-width="1.5"></line>
@@ -50,29 +106,28 @@
     <line x1="290" y1="102" x2="290" y2="118" stroke="var(--apagado)" stroke-width="1.5" marker-end="url(#pr)"></line>
 
     <rect x="30" y="120" width="520" height="52" fill="none" stroke="var(--texto)" stroke-width="1" rx="4"></rect>
-    <text x="46" y="141" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">embeddings · minilm multilingue · 384 dimensiones</text>
-    <text x="46" y="159" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">troceado por ventana de 128 tokens, normalizado y promediado</text>
+    <text x="46" y="141" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">{t.embTitulo}</text>
+    <text x="46" y="159" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">{t.embSub}</text>
 
     <line x1="290" y1="174" x2="290" y2="190" stroke="var(--apagado)" stroke-width="1.5" marker-end="url(#pr)"></line>
 
     <rect x="30" y="192" width="520" height="34" fill="none" stroke="var(--apagado)" stroke-width="1" rx="4"></rect>
-    <text x="46" y="214" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">mysql · vector serializado en columna json</text>
+    <text x="46" y="214" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">{t.mysql}</text>
 
     <line x1="290" y1="228" x2="290" y2="244" stroke="var(--apagado)" stroke-width="1.5" marker-end="url(#pr)"></line>
 
     <rect x="30" y="246" width="520" height="52" fill="none" stroke="var(--texto)" stroke-width="1" rx="4"></rect>
     <line x1="22" y1="250" x2="22" y2="294" stroke="var(--acento)" stroke-width="1.5"></line>
-    <text x="46" y="267" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">ranking · coseno con numpy, luego filtro de requisitos</text>
-    <text x="46" y="285" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">la puntuacion original se conserva junto a la ajustada</text>
+    <text x="46" y="267" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12" fill="var(--texto)">{t.rankingTitulo}</text>
+    <text x="46" y="285" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">{t.rankingSub}</text>
 
     <line x1="30" y1="322" x2="550" y2="322" stroke="var(--linea)" stroke-width="1"></line>
-    <text x="30" y="342" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">las tres interfaces llaman a la misma api y no repiten logica:</text>
-    <text x="30" y="362" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">terminal · n8n (webhooks) · streamlit  ->  fastapi</text>
-    <text x="30" y="382" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">borrando la api y n8n, el pipeline sigue corriendo por terminal</text>
+    <text x="30" y="342" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">{t.pie1}</text>
+    <text x="30" y="362" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">{t.pie2}</text>
+    <text x="30" y="382" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" fill="var(--apagado)">{t.pie3}</text>
   </svg>
 
   <figcaption>
-    El CV y la oferta pasan por el mismo modelo: es lo que permite compararlos en un
-    espacio común aunque no compartan ni una palabra.
+    {t.figcaption}
   </figcaption>
 </figure>

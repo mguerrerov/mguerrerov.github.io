@@ -1,30 +1,48 @@
 ---
 // Cifras tomadas de docs/metrics.md del repositorio del proyecto. Todas son
 // mediciones fechadas del 17 y 18 de agosto de 2026, ninguna es estimacion.
+//
+// Los valores cambian de separador segun el idioma: en ingles la coma decimal
+// se lee como separador de millares y cambiaria la cifra.
+import type { Idioma } from '../i18n/textos';
+
+interface Props {
+  idioma?: Idioma;
+}
+
+const { idioma = 'es' } = Astro.props;
+
+const FILAS = {
+  es: [
+    ['ritmo de la fuente', '37,4 ev/s sostenidos'],
+    ['pico en un segundo', '114 ev/s'],
+    ['latencia p50', '15,59 s'],
+    ['latencia p95', '55,75 s'],
+    ['duplicados en silver', '0 sobre 71.484 filas'],
+    ['huecos en bronze', '0'],
+    ['puntos de control', '180 MB frente a 13,7 MB de datos'],
+    ['coste en aws', '0 €'],
+  ],
+  en: [
+    ['source throughput', '37.4 ev/s sustained'],
+    ['one-second peak', '114 ev/s'],
+    ['p50 latency', '15.59 s'],
+    ['p95 latency', '55.75 s'],
+    ['duplicates in silver', '0 out of 71,484 rows'],
+    ['gaps in bronze', '0'],
+    ['checkpoints', '180 MB against 13.7 MB of data'],
+    ['aws cost', '€0'],
+  ],
+} as const;
 ---
 
 <dl class="metricas-lista">
-  <dt>ritmo de la fuente</dt>
-  <dd>37,4 ev/s sostenidos</dd>
-
-  <dt>pico en un segundo</dt>
-  <dd>114 ev/s</dd>
-
-  <dt>latencia p50</dt>
-  <dd>15,59 s</dd>
-
-  <dt>latencia p95</dt>
-  <dd>55,75 s</dd>
-
-  <dt>duplicados en silver</dt>
-  <dd>0 sobre 71.484 filas</dd>
-
-  <dt>huecos en bronze</dt>
-  <dd>0</dd>
-
-  <dt>puntos de control</dt>
-  <dd>180 MB frente a 13,7 MB de datos</dd>
-
-  <dt>coste en aws</dt>
-  <dd>0 €</dd>
+  {
+    FILAS[idioma].map(([etiqueta, valor]) => (
+      <>
+        <dt>{etiqueta}</dt>
+        <dd>{valor}</dd>
+      </>
+    ))
+  }
 </dl>

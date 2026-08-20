@@ -2,30 +2,48 @@
 // Tira de metricas del proyecto. Componente y no markup suelto en el MDX
 // porque alli `class` y los atributos con guion se parsean como JSX.
 // Todas las cifras salen de docs/metrics.md del repositorio del proyecto.
+//
+// Los valores cambian de separador segun el idioma: en ingles la coma decimal
+// se lee como separador de millares y cambiaria la cifra.
+import type { Idioma } from '../i18n/textos';
+
+interface Props {
+  idioma?: Idioma;
+}
+
+const { idioma = 'es' } = Astro.props;
+
+const FILAS = {
+  es: [
+    ['eventos', '1.311.676.396'],
+    ['días procesados', '359, 0 fallidos'],
+    ['periodo cubierto', '12,5 meses'],
+    ['bronze en disco', '149,4 GiB'],
+    ['silver', '40,4 GiB'],
+    ['compresión sobre el origen', '0,54×'],
+    ['duplicados', '0,0009 %'],
+    ['coste', '0 €'],
+  ],
+  en: [
+    ['events', '1,311,676,396'],
+    ['days processed', '359, 0 failed'],
+    ['period covered', '12.5 months'],
+    ['bronze on disk', '149.4 GiB'],
+    ['silver', '40.4 GiB'],
+    ['compression over source', '0.54×'],
+    ['duplicates', '0.0009 %'],
+    ['cost', '€0'],
+  ],
+} as const;
 ---
 
 <dl class="metricas-lista">
-  <dt>eventos</dt>
-  <dd>1.311.676.396</dd>
-
-  <dt>días procesados</dt>
-  <dd>359, 0 fallidos</dd>
-
-  <dt>periodo cubierto</dt>
-  <dd>12,5 meses</dd>
-
-  <dt>bronze en disco</dt>
-  <dd>149,4 GiB</dd>
-
-  <dt>silver</dt>
-  <dd>40,4 GiB</dd>
-
-  <dt>compresión sobre el origen</dt>
-  <dd>0,54×</dd>
-
-  <dt>duplicados</dt>
-  <dd>0,0009 %</dd>
-
-  <dt>coste</dt>
-  <dd>0 €</dd>
+  {
+    FILAS[idioma].map(([etiqueta, valor]) => (
+      <>
+        <dt>{etiqueta}</dt>
+        <dd>{valor}</dd>
+      </>
+    ))
+  }
 </dl>

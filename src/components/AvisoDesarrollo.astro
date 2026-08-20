@@ -1,17 +1,23 @@
 ---
 // Aviso de que un proyecto sigue en desarrollo. Sin caja ni fondo: solo una
 // regla de acento a la izquierda y la etiqueta en monoespaciada.
+import { textos, type Idioma } from '../i18n/textos';
+
 interface Props {
+  idioma?: Idioma;
   texto?: string;
 }
 
 const {
+  idioma = 'es',
   texto = 'El pipeline sigue en construcción. Las cifras y las decisiones que se describen aquí son las del estado actual y pueden cambiar.',
 } = Astro.props;
+
+const t = textos(idioma);
 ---
 
 <aside class="aviso" role="note">
-  <p class="etiqueta">En desarrollo</p>
+  <p class="etiqueta">{t.enDesarrollo}</p>
   <p>{texto}</p>
 </aside>
 
