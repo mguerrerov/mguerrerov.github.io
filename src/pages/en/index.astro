@@ -1,36 +1,38 @@
 ---
-// Home. Registro corporativo: cabecera con las cifras de cabecera, proyectos en
-// bloques blancos sobre fondo azulado, y datos en listas alineadas.
-import Base from '../layouts/Base.astro';
-import MiniFlujo from '../components/MiniFlujo.astro';
-import AvisoDesarrollo from '../components/AvisoDesarrollo.astro';
-import Idioma from '../components/Idioma.astro';
+// Home inglesa. Misma estructura que la española: las cifras son las mismas
+// mediciones, solo cambia el separador decimal y de millares.
+import Base from '../../layouts/Base.astro';
+import MiniFlujo from '../../components/MiniFlujo.astro';
+import AvisoDesarrollo from '../../components/AvisoDesarrollo.astro';
+import Idioma from '../../components/Idioma.astro';
 
 const cifras = [
-  { valor: '1.311 M', etiqueta: 'eventos procesados' },
-  { valor: '12,5', etiqueta: 'meses de histórico' },
-  { valor: '4', etiqueta: 'proyectos publicados' },
-  { valor: '0 €', etiqueta: 'coste de infraestructura' },
+  { valor: '1,311 M', etiqueta: 'events processed' },
+  { valor: '12.5', etiqueta: 'months of history' },
+  { valor: '4', etiqueta: 'published projects' },
+  { valor: '0 €', etiqueta: 'infrastructure cost' },
 ];
 ---
 
 <Base
   titulo="Marcos Guerrero"
-  descripcion="Ingeniería de datos e inteligencia aplicada. Python, Spark y machine learning."
+  descripcion="Data engineering and applied intelligence. Python, Spark and machine learning."
 >
   <header class="cabecera">
     <div class="envoltorio">
       <Idioma />
-      <p class="oficio">Datos e inteligencia artificial</p>
+      <p class="oficio">Data and artificial intelligence</p>
       <h1>Marcos Guerrero</h1>
+      <!-- BORRADOR: traduccion pendiente de reescritura por el autor. La voz de la
+           presentacion es suya; esto es solo un punto de partida. -->
       <p class="entrada lectura">
-        Preparo y proceso datos para que respondan preguntas: desde el volcado en
-        crudo hasta el modelo entrenado y el informe que alguien usa para decidir.
+        I prepare and process data so it answers questions: from the raw dump to
+        the trained model and the report someone uses to decide.
       </p>
       <p class="enlaces">
-        <a href="#proyectos">Ver proyectos</a>
+        <a href="#proyectos">See projects</a>
         <span class="sep" aria-hidden="true">·</span>
-        <a href="#contacto">Contacto</a>
+        <a href="#contacto">Contact</a>
       </p>
 
       <dl class="metricas cifras-cabecera">
@@ -48,48 +50,51 @@ const cifras = [
 
   <div class="envoltorio">
     <section id="proyectos" class="seccion" aria-labelledby="t-proyectos">
-      <h2 class="rotulo" id="t-proyectos">01 — Proyectos</h2>
+      <h2 class="rotulo" id="t-proyectos">01 — Projects</h2>
 
       <article class="tarjeta proyecto">
-        <p class="destacado">Proyecto principal</p>
-        <h3 class="titulo-grande">Pipeline sobre GH Archive</h3>
+        <p class="destacado">Main project</p>
+        <h3 class="titulo-grande">Pipeline over GH Archive</h3>
 
-        <AvisoDesarrollo texto="Sigue en construcción: las cifras son las del estado actual y pueden cambiar." />
+        <AvisoDesarrollo
+          idioma="en"
+          texto="Still under construction: the figures reflect the current state and may change."
+        />
 
         <p class="lectura">
-          Doce meses y medio de actividad pública de GitHub, descargados hora a
-          hora y convertidos en Parquet consultable. Sirve para medir qué parte de
-          los pull requests abre ya un agente automático y cuánto tarda cada uno
-          en recibir revisión.
+          Twelve and a half months of public GitHub activity, downloaded hour by
+          hour and turned into queryable Parquet. It measures how many pull
+          requests are already opened by an automated agent and how long each one
+          waits before review.
         </p>
 
         <MiniFlujo
-          titulo="Etapas: descarga, bronze, silver y calidad"
-          etapas={['gh archive', 'descarga', 'bronze', 'silver', 'calidad']}
+          titulo="Stages: download, bronze, silver and quality"
+          etapas={['gh archive', 'download', 'bronze', 'silver', 'quality']}
           destacada={3}
         />
 
         <dl class="metricas-lista">
-          <dt>eventos</dt>
-          <dd>1.311.676.396</dd>
+          <dt>events</dt>
+          <dd>1,311,676,396</dd>
 
-          <dt>periodo</dt>
-          <dd>12,5 meses</dd>
+          <dt>period</dt>
+          <dd>12.5 months</dd>
 
-          <dt>parquet en disco</dt>
-          <dd>149,4 GiB</dd>
+          <dt>parquet on disk</dt>
+          <dd>149.4 GiB</dd>
 
-          <dt>compresión sobre el origen</dt>
-          <dd>0,54×</dd>
+          <dt>compression over the source</dt>
+          <dd>0.54×</dd>
 
-          <dt>duplicados</dt>
-          <dd>0,0009 %</dd>
+          <dt>duplicates</dt>
+          <dd>0.0009%</dd>
         </dl>
 
         <p class="lectura">
-          Corre entero en una máquina de escritorio, sin nube de pago. Lo caro no
-          fue procesarlo sino que cupiera: el disco se llenó dos veces antes de
-          reordenar la deduplicación.
+          It runs end to end on a desktop machine, no paid cloud. The expensive
+          part was not processing it but making it fit: the disk filled up twice
+          before the deduplication step was reordered.
         </p>
 
         <ul class="etiquetas">
@@ -101,49 +106,52 @@ const cifras = [
           <li>github actions</li>
         </ul>
 
-        <p class="mas"><a href="/proyectos/gh-archive/">Leer cómo está hecho →</a></p>
+        <p class="mas"><a href="/en/proyectos/gh-archive/">Read how it works →</a></p>
       </article>
 
       <article class="tarjeta proyecto">
-        <h3 class="titulo-grande">Pipeline en tiempo real de Wikipedia</h3>
+        <h3 class="titulo-grande">Real-time Wikipedia pipeline</h3>
 
-        <AvisoDesarrollo texto="Las capas locales están terminadas y medidas; el equivalente en AWS está validado pero sin aplicar." />
+        <AvisoDesarrollo
+          idioma="en"
+          texto="The local layers are finished and measured; the AWS equivalent is validated but not applied."
+        />
 
         <p class="lectura">
-          Wikimedia publica cada cambio de cada wiki en cuanto ocurre. El pipeline
-          los recoge, los ordena en tres capas y responde por ventanas de un minuto
-          qué páginas está editando más de una persona a la vez y qué parte de la
-          actividad es humana.
+          Wikimedia publishes every change on every wiki as it happens. The
+          pipeline collects them, sorts them into three layers and answers, in
+          one-minute windows, which pages are being edited by more than one
+          person at once and how much of the activity is human.
         </p>
 
         <MiniFlujo
-          titulo="Etapas: fuente, cola, bronce, plata, oro y AWS"
-          etapas={['wikimedia sse', 'cola', 'bronce', 'plata', 'oro', 'aws']}
+          titulo="Stages: source, queue, bronze, silver, gold and AWS"
+          etapas={['wikimedia sse', 'queue', 'bronze', 'silver', 'gold', 'aws']}
           destacada={5}
         />
 
         <dl class="metricas-lista">
-          <dt>ritmo de la fuente</dt>
-          <dd>37,4 ev/s sostenidos</dd>
+          <dt>source rate</dt>
+          <dd>37.4 ev/s sustained</dd>
 
-          <dt>latencia p50</dt>
-          <dd>15,59 s</dd>
+          <dt>p50 latency</dt>
+          <dd>15.59 s</dd>
 
-          <dt>duplicados en silver</dt>
-          <dd>0 sobre 71.484 filas</dd>
+          <dt>duplicates in silver</dt>
+          <dd>0 out of 71,484 rows</dd>
 
-          <dt>huecos en bronze</dt>
+          <dt>gaps in bronze</dt>
           <dd>0</dd>
 
-          <dt>coste de infraestructura</dt>
+          <dt>infrastructure cost</dt>
           <dd>0 €</dd>
         </dl>
 
         <p class="lectura">
-          El mismo código corre en un portátil y en AWS sin bifurcarse. Lo difícil no
-          fue quitar el condicional que separa los dos entornos, sino descubrir que
-          la diferencia se había colado igual, columna a columna, por debajo de la
-          abstracción que existía para impedirlo.
+          The same code runs on a laptop and on AWS without forking. The hard
+          part was not removing the conditional separating both environments, but
+          finding out that the difference had crept in anyway, column by column,
+          underneath the abstraction meant to prevent it.
         </p>
 
         <ul class="etiquetas">
@@ -156,25 +164,25 @@ const cifras = [
         </ul>
 
         <p class="mas">
-          <a href="/proyectos/wikipedia-tiempo-real/">Leer cómo está hecho →</a>
+          <a href="/en/proyectos/wikipedia-tiempo-real/">Read how it works →</a>
         </p>
       </article>
 
       <div class="rejilla">
         <article class="tarjeta proyecto">
-          <h3>Recomendador de candidatos</h3>
+          <h3>Candidate recommender</h3>
           <p>
-            Ordena CVs frente a una oferta por cercanía semántica en vez de por
-            palabras clave, y luego corrige el orden descontando los requisitos
-            duros que un embedding no sabe leer.
+            It ranks CVs against a job offer by semantic closeness instead of
+            keywords, then corrects the ranking by discounting the hard
+            requirements an embedding cannot read.
           </p>
 
           <dl class="metricas-lista">
-            <dt>dimensiones</dt>
+            <dt>dimensions</dt>
             <dd>384</dd>
 
             <dt>tests</dt>
-            <dd>61, en 6 s</dd>
+            <dd>61, in 6 s</dd>
           </dl>
 
           <ul class="etiquetas">
@@ -186,24 +194,24 @@ const cifras = [
           </ul>
 
           <p class="mas">
-            <a href="/proyectos/recomendador-candidatos/">Leer cómo está hecho →</a>
+            <a href="/en/proyectos/recomendador-candidatos/">Read how it works →</a>
           </p>
         </article>
 
         <article class="tarjeta proyecto">
-          <h3>Detección de fraude con tarjeta</h3>
+          <h3>Credit card fraud detection</h3>
           <p>
-            284.807 transacciones con un 0,17 % de fraude. Compara tres formas de
-            tratar ese desequilibrio contra dos modelos, y gana la que no toca los
-            datos.
+            284,807 transactions with 0.17% fraud. It compares three ways of
+            handling that imbalance against two models, and the winner is the one
+            that leaves the data untouched.
           </p>
 
           <dl class="metricas-lista">
-            <dt>mejor F1</dt>
-            <dd>0,8364</dd>
+            <dt>best F1</dt>
+            <dd>0.8364</dd>
 
-            <dt>precisión</dt>
-            <dd>98,57 %</dd>
+            <dt>precision</dt>
+            <dd>98.57%</dd>
           </dl>
 
           <ul class="etiquetas">
@@ -213,7 +221,7 @@ const cifras = [
             <li>pandas</li>
           </ul>
 
-          <p class="mas"><a href="/proyectos/deteccion-fraude/">Leer cómo está hecho →</a></p>
+          <p class="mas"><a href="/en/proyectos/deteccion-fraude/">Read how it works →</a></p>
         </article>
       </div>
     </section>
@@ -222,32 +230,32 @@ const cifras = [
       <h2 class="rotulo" id="t-stack">02 — Stack</h2>
       <div class="tarjeta">
         <dl class="agrupado">
-          <dt>datos</dt>
+          <dt>data</dt>
           <dd>Python, Pandas, NumPy, Spark, Power BI</dd>
 
-          <dt>modelos</dt>
+          <dt>models</dt>
           <dd>Scikit-Learn, PyTorch</dd>
 
-          <dt>bases de datos</dt>
+          <dt>databases</dt>
           <dd>PostgreSQL, MySQL</dd>
 
-          <dt>lenguajes</dt>
+          <dt>languages</dt>
           <dd>Python, JavaScript, PHP, Java</dd>
 
-          <dt>sistemas</dt>
+          <dt>systems</dt>
           <dd>Linux, Windows, AWS</dd>
 
-          <dt>certificación</dt>
+          <dt>certification</dt>
           <dd>AWS Certified Cloud Practitioner</dd>
 
-          <dt>idiomas</dt>
-          <dd>Español nativo, inglés B2–C1</dd>
+          <dt>spoken languages</dt>
+          <dd>Native Spanish, English B2–C1</dd>
         </dl>
       </div>
     </section>
 
     <section id="contacto" class="seccion" aria-labelledby="t-contacto">
-      <h2 class="rotulo" id="t-contacto">03 — Contacto</h2>
+      <h2 class="rotulo" id="t-contacto">03 — Contact</h2>
       <div class="tarjeta">
         <dl class="agrupado">
           <dt>email</dt>
