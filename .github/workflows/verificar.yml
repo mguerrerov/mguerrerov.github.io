@@ -47,6 +47,11 @@ jobs:
 
       - run: npm run build
 
+      # Comprueba que las diez paginas existen, que cada una declara su idioma
+      # y su pareja, y que ninguna inglesa se quedo con texto español.
+      - name: Verificar el sitio bilingue
+        run: node scripts/verificar-i18n.mjs
+
       # Verificacion de fuga sobre el resultado del build, no sobre el codigo.
       #
       # Se comparan COINCIDENCIAS, no lineas. Astro minifica el HTML y lo deja

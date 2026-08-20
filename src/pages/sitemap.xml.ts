@@ -3,13 +3,18 @@ import type { APIRoute } from 'astro';
 // Rutas indexables, listadas a mano. Son pocas y cambian poco, y una lista
 // explicita se lee mejor que un descubrimiento automatico. /muestra queda fuera
 // a proposito: lleva noindex y no es contenido del portfolio.
-const RUTAS = [
+//
+// Cada pagina existe en los dos idiomas. Que son pareja lo declara el hreflang
+// de cada una; aqui basta con listarlas todas.
+const PAGINAS = [
   '/',
   '/proyectos/gh-archive/',
   '/proyectos/wikipedia-tiempo-real/',
   '/proyectos/recomendador-candidatos/',
   '/proyectos/deteccion-fraude/',
 ];
+
+const RUTAS = [...PAGINAS, ...PAGINAS.map((ruta) => `/en${ruta}`)];
 
 export const GET: APIRoute = ({ site }) => {
   const base = site?.href.replace(/\/$/, '') ?? '';

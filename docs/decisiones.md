@@ -109,3 +109,24 @@ preferencia. La configuracion queda lista para anadirlo: fichero `CNAME` en
 La verificacion previa al despliegue busca `@gmail` y el email de contacto es
 justamente una direccion de gmail, asi que siempre dara positivo. Se filtra esa
 direccion exacta para que el grep siga detectando cualquier otra.
+
+## Fase 6 — Bilingue
+
+**El idioma vive en la URL, no en el navegador.**
+El conmutador es un enlace a `/en/...`, no un control con estado en
+`localStorage`. Asi el idioma se mantiene al entrar en una subpagina, la pagina
+inglesa se puede compartir e indexar, y no hace falta ni un byte de JavaScript.
+
+**El español se queda en la raiz.**
+Las URLs ya compartidas e indexadas no cambian; el ingles cuelga de `/en/`. El
+`x-default` del hreflang apunta al español por la misma razon.
+
+**La prosa se duplica y solo las etiquetas van al diccionario.**
+Un sistema de claves sobre 200 lineas de prosa tecnica la volveria ilegible e
+impediria que las dos versiones divergan. Solo lo repetido —conmutador, miga,
+pie, rotulos— vive en `src/i18n/textos.ts`.
+
+**El conmutador no lleva bandera.**
+Los iconos y los emoji estan prohibidos en el sitio, y una bandera nombra un
+pais y no un idioma: `ES / EN` en monoespaciada dice lo mismo sin ninguna de las
+dos cosas.
