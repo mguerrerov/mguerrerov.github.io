@@ -5,6 +5,8 @@
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 
+const SITIO = 'https://mguerrerov.netlify.app';
+
 const PARES = [
   ['/', '/en/'],
   ['/proyectos/gh-archive/', '/en/proyectos/gh-archive/'],
@@ -40,8 +42,24 @@ for (const [es, en] of PARES) {
       fallos.push(`${ruta}: falta <html lang="${idioma}">`);
     }
     // hreflang reciproco: cada pagina declara las dos versiones del par.
-    for (const destino of [es, en]) {
-      const enlace = new RegExp(`hreflang="[a-z-]+" href="[^"]*${destino}"`);
+    // El destino se ancla a la URL absoluta completa (con el sitio por
+    // delante y `"` como cierre): con "[^"]*" suelto, la ruta espanola
+    // ("/proyectos/gh-archive/") es sufijo de la ruta inglesa
+    // ("https://.../en/proyectos/gh-archive/") y el regex casa igual aunque
+    // falte el hreflang espanol. Anclar al origen completo es lo que impide
+    // ese falso positivo.
+    //
+    // Ademas el codigo de idioma se fija a "es" o "en" en vez de aceptar
+    // cualquier [a-z-]: la etiqueta "x-default" tambien lleva href al sitio
+    // espanol (es el idioma por defecto), asi que un patron laxo la confunde
+    // con el hreflang="es" de verdad y el fallo pasa desapercibido igual.
+    for (const [codigo, destino] of [
+      ['es', es],
+      ['en', en],
+    ]) {
+      const url = `${SITIO}${destino}`;
+      const urlEscapada = url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const enlace = new RegExp(`hreflang="${codigo}" href="${urlEscapada}"`);
       if (!enlace.test(doc[idioma])) {
         fallos.push(`${ruta}: el hreflang no apunta a ${destino}`);
       }
