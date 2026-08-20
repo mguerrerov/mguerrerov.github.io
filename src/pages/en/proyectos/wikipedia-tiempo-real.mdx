@@ -131,9 +131,9 @@ it worked perfectly.
 
 I found out by reading the EMR documentation before writing the Terraform, not by running
 anything on AWS. The abstraction moved on to normalising the whole envelope to a common
-schema, not just supplying the format. The cost is that `desplazamiento` had to become
-text, because the Kinesis sequence number has 56 digits and does not fit in a `BIGINT`, so
-the gap count needs a `CAST` and only applies to Kafka.
+schema, not just supplying the format. The cost is that `desplazamiento`, the offset
+column, had to become text, because the Kinesis sequence number has 56 digits and does not
+fit in a `BIGINT`, so the gap count needs a `CAST` and only applies to Kafka.
 
 The lesson I take away: an abstraction that has not been exercised against both
 implementations is not tested, only written.
