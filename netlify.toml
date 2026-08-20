@@ -1,0 +1,13 @@
+# Configuracion de despliegue en Netlify.
+#
+# Netlify construye el sitio por su cuenta desde este fichero, asi que el
+# workflow de GitHub Actions ya no despliega: solo verifica.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Misma version que usa la verificacion en CI, para que un build que pasa
+  # alli no falle aqui por diferencias de Node.
+  NODE_VERSION = "22"

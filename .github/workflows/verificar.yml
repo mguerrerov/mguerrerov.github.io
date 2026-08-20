@@ -1,19 +1,20 @@
-name: Desplegar en GitHub Pages
+name: Verificar el build
+
+# El despliegue lo hace Netlify desde netlify.toml. Este workflow no publica
+# nada: solo comprueba que el build sale y que no arrastra datos personales.
+# Netlify no ejecuta estas verificaciones, asi que tienen que vivir aqui.
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
-# Permisos minimos para publicar en Pages con el token del propio workflow.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# Si se empuja dos veces seguidas, cancela el despliegue anterior en curso.
 concurrency:
-  group: pages
+  group: verificar-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -23,11 +24,11 @@ jobs:
       - uses: actions/checkout@v4
 
       # El material de referencia con datos personales esta en .gitignore y no
-      # deberia existir en el repositorio. Si aparece, el despliegue para aqui.
+      # deberia existir en el repositorio. Si aparece, la verificacion falla.
       - name: Comprobar que recursos/ no esta en el repositorio
         run: |
           if git ls-files --error-unmatch recursos > /dev/null 2>&1; then
-            echo "ERROR: recursos/ esta versionado. No se despliega."
+            echo "ERROR: recursos/ esta versionado."
             exit 1
           fi
           echo "OK: recursos/ no esta versionado."
@@ -65,19 +66,3 @@ jobs:
             exit 1
           fi
           echo "OK: sin datos personales en dist/."
-
-      - uses: actions/configure-pages@v5
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
-  desplegar:
-    needs: construir
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.despliegue.outputs.page_url }}
-    steps:
-      - id: despliegue
-        uses: actions/deploy-pages@v4
